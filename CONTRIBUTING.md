@@ -1,0 +1,68 @@
+# Contributing to AgriGuard AI
+
+## Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Always deployable. Production releases are tagged here (`v0.1.0`, …). Only `develop` and `hotfix/*` merge in. |
+| `develop` | Integration branch. All feature work merges here first. |
+| `feature/<short-name>` | One branch per task, e.g. `feature/camera-capture`, `feature/diagnosis-sync`. Deleted after merge. |
+| `hotfix/<short-name>` | Branched from `main` for urgent production fixes; merged back into `main` **and** `develop`. |
+
+Prefix feature branches with the area when useful: `feature/ml-augmentation`, `feature/api-otp`, `feature/pwa-i18n`.
+
+## Commits: Conventional Commits
+
+```
+<type>(<scope>): <summary in imperative mood>
+
+feat(api): add diagnosis sync endpoint
+fix(pwa): stop camera stream when leaving capture screen
+docs(contract): add severity band to prediction schema
+chore(ci): cache pip downloads
+test(api): cover duplicate client_id on sync
+```
+
+Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `perf`, `ci`. Scopes: `ml`, `api`, `pwa`, `contract`, `ci`, `infra`.
+
+## Pull requests
+
+1. Open the PR against `develop` and fill in the template.
+2. CI must be green (lint, tests, build).
+3. **The other developer must approve.** No self-merges, including for docs.
+4. Squash-merge, delete the branch.
+
+## Changing the contract
+
+`docs/api-contract.yaml`, `docs/model-output.md` and `docs/offline-sync.md` are the agreement between the backend and
+the PWA. A change to any of them:
+
+- goes in its own PR with the `contract` scope (`docs(contract): …` or `feat(contract): …`),
+- must be approved by **both** developers,
+- bumps `info.version` in `api-contract.yaml` (minor for additive changes, major for breaking ones).
+
+## Definition of Done
+
+A task is done only when **all** of these are true:
+
+- [ ] Merged to `develop` through a reviewed, approved PR.
+- [ ] Automated tests cover the new behaviour and the whole suite passes in CI.
+- [ ] Lint and format checks pass with no suppressed warnings.
+- [ ] Verified on a real low-end Android device (UI work), not only a desktop browser.
+- [ ] Offline behaviour considered and either implemented or explicitly deferred in writing in the PR.
+- [ ] User-facing text added to all four translation files (en, ny, bem, toi).
+- [ ] README / API docs / user guide updated in the same PR.
+
+## Data and model files
+
+Images, datasets and trained models are versioned with **DVC**, never committed as raw binaries. `.gitignore`
+blocks the common formats, so if `git add` refuses a file, that's intentional.
+
+## Weekly rhythm
+
+| When | What |
+|------|------|
+| Daily 08:30 | 10-min stand-up (WhatsApp/call): yesterday, today, blockers |
+| Monday | Sprint planning (60 min) |
+| Wednesday | Technical sync (45 min): architecture, contract changes |
+| Friday | Demo and retrospective (60 min): a step is closed only when its exit condition is shown here |

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  contract:
+    name: API contract is valid OpenAPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "openapi-spec-validator>=0.7,<1"
+      - run: openapi-spec-validator docs/api-contract.yaml
+
+  backend:
+    name: Backend lint + tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: agriguard
+          POSTGRES_USER: agriguard
+          POSTGRES_PASSWORD: agriguard
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agriguard" --health-interval 5s --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DATABASE_URL: postgres://agriguard:agriguard@localhost:5432/agriguard
+      SECRET_KEY: ci-only-not-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements/*.txt
+      - run: pip install -r requirements/dev.txt
+      - run: ruff check .
+      - run: black --check .
+      - run: python manage.py makemigrations --check --dry-run
+      - run: pytest
+
+  pwa:
+    name: PWA lint + tests + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pwa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # switch to `npm ci` with npm caching once package-lock.json is committed
+      - run: npm install
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

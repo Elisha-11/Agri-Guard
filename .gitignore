@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+db.sqlite3
+backend/staticfiles/
+backend/media/
+
+# --- Node ---
+node_modules/
+pwa/dist/
+pwa/dev-dist/
+*.log
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Data & models: version with DVC, never Git ---
+ml/data/raw/
+ml/data/processed/
+ml/data/interim/
+ml/models/
+ml/wandb/
+*.h5
+*.keras
+*.tflite
+*.pb
+*.ckpt
+*.zip
+*.tar.gz
+# block images everywhere except UI assets and docs
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.PNG
+!pwa/public/icons/*.png
+!docs/**/*.png
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

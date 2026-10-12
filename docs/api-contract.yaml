@@ -1,0 +1,818 @@
+openapi: 3.1.0
+info:
+  title: AgriGuard AI API
+  version: 0.1.0
+  summary: Backend contract between the AgriGuard PWA and the Django REST API.
+  description: |
+    Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
+    bump (see CONTRIBUTING.md). Behaviour referenced here is detailed in `model-output.md` and `offline-sync.md`.
+
+    Authentication is phone number + one-time code (OTP) because many farmers have no email. Successful verification
+    returns a JWT access/refresh pair (djangorestframework-simplejwt).
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://staging-api.agriguard.example/api/v1
+    description: Staging (placeholder until the domain is registered)
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: system
+  - name: auth
+  - name: profile
+  - name: diagnoses
+  - name: advisory
+  - name: model
+  - name: feedback
+
+paths:
+  /health/:
+    get:
+      tags: [system]
+      operationId: health
+      summary: Liveness check
+      security: []
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /auth/otp/request/:
+    post:
+      tags: [auth]
+      operationId: requestOtp
+      summary: Send a 6-digit one-time code by SMS
+      description: Rate limited to 3 requests per phone number per 15 minutes. Codes expire after 10 minutes.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpRequest"
+      responses:
+        "202":
+          description: Code sent (always returned for valid numbers, to avoid revealing whether an account exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [expires_in]
+                properties:
+                  expires_in:
+                    type: integer
+                    description: Seconds until the code expires
+                    example: 600
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/otp/verify/:
+    post:
+      tags: [auth]
+      operationId: verifyOtp
+      summary: Exchange phone + code for tokens; creates the farmer account on first login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpVerify"
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Wrong or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/token/refresh/:
+    post:
+      tags: [auth]
+      operationId: refreshToken
+      summary: Get a new access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh]
+              properties:
+                refresh:
+                  type: string
+      responses:
+        "200":
+          description: New tokens (refresh tokens rotate)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access, refresh]
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /me/:
+    get:
+      tags: [profile]
+      operationId: getProfile
+      summary: Current farmer profile
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Farmer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [profile]
+      operationId: updateProfile
+      summary: Update profile (last-write-wins on updated_at)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FarmerUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Farmer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /farms/:
+    get:
+      tags: [profile]
+      operationId: listFarms
+      summary: Farms belonging to the current farmer
+      responses:
+        "200":
+          description: Farms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Farm"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [profile]
+      operationId: createFarm
+      summary: Add a farm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FarmCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Farm"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /diagnoses/sync/:
+    post:
+      tags: [diagnoses]
+      operationId: syncDiagnoses
+      summary: Upload a batch of diagnoses made offline (idempotent on client_id)
+      description: See offline-sync.md. Always 200 with one result per item, in request order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 25
+                  items:
+                    $ref: "#/components/schemas/DiagnosisCreate"
+      responses:
+        "200":
+          description: Per-item results
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [results]
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SyncResult"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /diagnoses/:
+    get:
+      tags: [diagnoses]
+      operationId: listDiagnoses
+      summary: The farmer's diagnosis history (for restoring on a new device)
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Only diagnoses received after this time
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Page of diagnoses, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [results]
+                properties:
+                  next:
+                    type: [string, "null"]
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Diagnosis"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /diagnoses/{client_id}/photo/:
+    put:
+      tags: [diagnoses]
+      operationId: uploadDiagnosisPhoto
+      summary: Attach the leaf photo to a synced diagnosis (optional, needs photo consent)
+      description: JPEG, max 1 MB, already resized on device. Used for model retraining and expert review.
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "204":
+          description: Stored
+        "403":
+          description: Farmer has not given photo consent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Diagnosis not synced yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Photo larger than 1 MB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /advisory/bundle/:
+    get:
+      tags: [advisory]
+      operationId: getAdvisoryBundle
+      summary: All disease names and advice for one language, cached offline by the PWA
+      security: []
+      parameters:
+        - name: lang
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Language"
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bundle
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdvisoryBundle"
+        "304":
+          description: Cached bundle is current
+
+  /model/latest/:
+    get:
+      tags: [model]
+      operationId: getLatestModel
+      summary: Which model the PWA should be running
+      security: []
+      responses:
+        "200":
+          description: Current model manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelManifest"
+
+  /feedback/:
+    post:
+      tags: [feedback]
+      operationId: submitFeedback
+      summary: Farmer or extension officer says whether a diagnosis was right (idempotent on client_id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackCreate"
+      responses:
+        "201":
+          description: Stored
+        "200":
+          description: Already stored (duplicate client_id)
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ValidationError:
+      description: Request body failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    RateLimited:
+      description: Too many requests
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: invalid_phone
+        message:
+          type: string
+        fields:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    Health:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+          example: 0.1.0
+
+    Language:
+      type: string
+      enum: [en, ny, bem, toi]
+      description: English, Nyanja (Chichewa), Bemba, Tonga
+
+    PhoneNumber:
+      type: string
+      pattern: '^\+260(9[5-7]|7[5-7])\d{7}$'
+      description: Zambian mobile number in E.164 (Airtel 097/077, MTN 096/076, Zamtel 095/075)
+      example: "+260971234567"
+
+    OtpRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+
+    OtpVerify:
+      type: object
+      required: [phone, code]
+      properties:
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+        code:
+          type: string
+          pattern: '^\d{6}$'
+
+    TokenPair:
+      type: object
+      required: [access, refresh, is_new_user]
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+        is_new_user:
+          type: boolean
+          description: True on first login, so the PWA shows onboarding
+
+    Farmer:
+      type: object
+      required: [id, phone, preferred_language, photo_consent, location_consent, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+        display_name:
+          type: [string, "null"]
+          maxLength: 80
+        preferred_language:
+          $ref: "#/components/schemas/Language"
+        province:
+          type: [string, "null"]
+        district:
+          type: [string, "null"]
+        role:
+          type: string
+          enum: [farmer, extension_officer]
+          default: farmer
+        photo_consent:
+          type: boolean
+          description: May uploaded leaf photos be used for model improvement
+        location_consent:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+
+    FarmerUpdate:
+      type: object
+      properties:
+        display_name:
+          type: [string, "null"]
+          maxLength: 80
+        preferred_language:
+          $ref: "#/components/schemas/Language"
+        province:
+          type: [string, "null"]
+        district:
+          type: [string, "null"]
+        photo_consent:
+          type: boolean
+        location_consent:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          description: Client timestamp for last-write-wins
+
+    Crop:
+      type: string
+      enum: [maize, groundnut, cassava, soybean, cotton]
+
+    GeoPoint:
+      type: object
+      description: Rounded on device to 3 decimal places (~110 m)
+      required: [lat, lng]
+      properties:
+        lat:
+          type: number
+          minimum: -18.1
+          maximum: -8.2
+        lng:
+          type: number
+          minimum: 21.9
+          maximum: 33.8
+
+    FarmCreate:
+      type: object
+      required: [client_id, name]
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 80
+        crops:
+          type: array
+          items:
+            $ref: "#/components/schemas/Crop"
+        size_hectares:
+          type: [number, "null"]
+          minimum: 0
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+
+    Farm:
+      allOf:
+        - $ref: "#/components/schemas/FarmCreate"
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+
+    Prediction:
+      type: object
+      description: Built on device from the raw model output. See model-output.md.
+      required: [class_id, class_index, confidence, status, severity, top_k, model_version]
+      properties:
+        class_id:
+          type: string
+          pattern: '^[a-z]+__[a-z_]+$'
+          example: maize__grey_leaf_spot
+        class_index:
+          type: integer
+          minimum: 0
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+          enum: [confident, uncertain, consult]
+        severity:
+          type: string
+          enum: [none, low, moderate, high, unknown]
+        top_k:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            required: [class_id, confidence]
+            properties:
+              class_id:
+                type: string
+              confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+        model_version:
+          type: string
+          example: 2026.11.0
+        inference_ms:
+          type: integer
+          minimum: 0
+
+    DiagnosisCreate:
+      type: object
+      required: [client_id, crop, captured_at, prediction]
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        farm_client_id:
+          type: [string, "null"]
+          format: uuid
+        crop:
+          $ref: "#/components/schemas/Crop"
+        captured_at:
+          type: string
+          format: date-time
+          description: Device clock at capture
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+        prediction:
+          $ref: "#/components/schemas/Prediction"
+        app_version:
+          type: string
+          example: 0.1.0
+
+    Diagnosis:
+      allOf:
+        - $ref: "#/components/schemas/DiagnosisCreate"
+        - type: object
+          required: [id, received_at, has_photo]
+          properties:
+            id:
+              type: string
+              format: uuid
+            received_at:
+              type: string
+              format: date-time
+            has_photo:
+              type: boolean
+
+    SyncResult:
+      type: object
+      required: [client_id, status]
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, duplicate, conflict, invalid]
+        id:
+          type: [string, "null"]
+          format: uuid
+          description: Server id, present for created and duplicate
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    AdviceSection:
+      type: object
+      required: [title, steps]
+      properties:
+        title:
+          type: string
+        steps:
+          type: array
+          items:
+            type: string
+        audio_url:
+          type: [string, "null"]
+          description: Recorded human narration (Step 12); null falls back to Web Speech
+
+    DiseaseAdvice:
+      type: object
+      required: [class_id, name, symptoms, treatment, prevention, follow_up]
+      properties:
+        class_id:
+          type: string
+        name:
+          type: string
+          example: Grey Leaf Spot
+        local_name:
+          type: [string, "null"]
+        symptoms:
+          type: array
+          items:
+            type: string
+        treatment:
+          $ref: "#/components/schemas/AdviceSection"
+        prevention:
+          $ref: "#/components/schemas/AdviceSection"
+        follow_up:
+          $ref: "#/components/schemas/AdviceSection"
+        safety_warning:
+          type: [string, "null"]
+          description: Mandatory for any chemical treatment (PPE, dosage limits, pre-harvest interval)
+        reviewed_by:
+          type: string
+          description: Agronomist who signed off this text
+        reviewed_at:
+          type: string
+          format: date
+
+    AdvisoryBundle:
+      type: object
+      required: [bundle_version, lang, taxonomy_version, diseases, ui]
+      properties:
+        bundle_version:
+          type: string
+          example: 2026.10.1
+        lang:
+          $ref: "#/components/schemas/Language"
+        taxonomy_version:
+          type: string
+          example: "0.1"
+        diseases:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiseaseAdvice"
+        ui:
+          type: object
+          description: Fixed messages for uncertain/consult/rejected states
+          additionalProperties:
+            type: string
+
+    ModelManifest:
+      type: object
+      required: [model_version, taxonomy_version, model_url, labels_url, size_bytes, sha256, thresholds, min_app_version]
+      properties:
+        model_version:
+          type: string
+          example: 2026.11.0
+        taxonomy_version:
+          type: string
+        model_url:
+          type: string
+          format: uri
+          description: URL of model.json; shards sit beside it
+        labels_url:
+          type: string
+          format: uri
+        size_bytes:
+          type: integer
+          maximum: 15728640
+          description: Total of model.json + shards; must stay under 15 MB
+        sha256:
+          type: string
+          description: Hash of model.json, to verify the cached copy
+        thresholds:
+          type: object
+          required: [confident, uncertain]
+          properties:
+            confident:
+              type: number
+              example: 0.7
+            uncertain:
+              type: number
+              example: 0.4
+        min_app_version:
+          type: string
+
+    FeedbackCreate:
+      type: object
+      required: [client_id, diagnosis_client_id, was_correct]
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        diagnosis_client_id:
+          type: string
+          format: uuid
+        was_correct:
+          type: boolean
+        corrected_class_id:
+          type: [string, "null"]
+        comment:
+          type: [string, "null"]
+          maxLength: 500
+        given_by_role:
+          type: string
+          enum: [farmer, extension_officer]

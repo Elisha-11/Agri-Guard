@@ -1,0 +1,6 @@
+-r base.txt
+pytest>=8.3,<9
+pytest-django>=4.9,<5
+factory-boy>=3.3,<4
+ruff==0.6.9
+black==24.8.0

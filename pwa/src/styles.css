@@ -1,0 +1,11 @@
+:root {
+  --ag-green: #1f6f3f;
+}
+body {
+  min-height: 100dvh;
+}
+.btn-capture {
+  /* big tap target for low-literacy, one-thumb use */
+  min-height: 72px;
+  font-size: 1.25rem;
+}

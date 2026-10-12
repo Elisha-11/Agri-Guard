@@ -1,0 +1,130 @@
+{
+  "model_version": "0.0.0-untrained",
+  "taxonomy_version": "0.1",
+  "input": {
+    "width": 224,
+    "height": 224,
+    "channels": 3,
+    "preprocessing": "efficientnet",
+    "value_range": [
+      0,
+      255
+    ]
+  },
+  "classes": [
+    {
+      "index": 0,
+      "id": "maize__healthy",
+      "crop": "maize",
+      "is_healthy": true
+    },
+    {
+      "index": 1,
+      "id": "maize__northern_leaf_blight",
+      "crop": "maize",
+      "is_healthy": false
+    },
+    {
+      "index": 2,
+      "id": "maize__grey_leaf_spot",
+      "crop": "maize",
+      "is_healthy": false
+    },
+    {
+      "index": 3,
+      "id": "maize__common_rust",
+      "crop": "maize",
+      "is_healthy": false
+    },
+    {
+      "index": 4,
+      "id": "maize__lethal_necrosis",
+      "crop": "maize",
+      "is_healthy": false
+    },
+    {
+      "index": 5,
+      "id": "maize__streak_virus",
+      "crop": "maize",
+      "is_healthy": false
+    },
+    {
+      "index": 6,
+      "id": "groundnut__healthy",
+      "crop": "groundnut",
+      "is_healthy": true
+    },
+    {
+      "index": 7,
+      "id": "groundnut__rosette",
+      "crop": "groundnut",
+      "is_healthy": false
+    },
+    {
+      "index": 8,
+      "id": "groundnut__early_leaf_spot",
+      "crop": "groundnut",
+      "is_healthy": false
+    },
+    {
+      "index": 9,
+      "id": "groundnut__late_leaf_spot",
+      "crop": "groundnut",
+      "is_healthy": false
+    },
+    {
+      "index": 10,
+      "id": "cassava__healthy",
+      "crop": "cassava",
+      "is_healthy": true
+    },
+    {
+      "index": 11,
+      "id": "cassava__mosaic_disease",
+      "crop": "cassava",
+      "is_healthy": false
+    },
+    {
+      "index": 12,
+      "id": "cassava__brown_streak",
+      "crop": "cassava",
+      "is_healthy": false
+    },
+    {
+      "index": 13,
+      "id": "soybean__healthy",
+      "crop": "soybean",
+      "is_healthy": true
+    },
+    {
+      "index": 14,
+      "id": "soybean__rust",
+      "crop": "soybean",
+      "is_healthy": false
+    },
+    {
+      "index": 15,
+      "id": "soybean__frogeye_leaf_spot",
+      "crop": "soybean",
+      "is_healthy": false
+    },
+    {
+      "index": 16,
+      "id": "cotton__healthy",
+      "crop": "cotton",
+      "is_healthy": true
+    },
+    {
+      "index": 17,
+      "id": "cotton__bacterial_blight",
+      "crop": "cotton",
+      "is_healthy": false
+    },
+    {
+      "index": 18,
+      "id": "cotton__alternaria_leaf_spot",
+      "crop": "cotton",
+      "is_healthy": false
+    }
+  ]
+}

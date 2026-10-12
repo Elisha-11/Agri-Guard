@@ -1,0 +1,14 @@
+# Training environment (Google Colab or local GPU). Pin exact versions once the baseline run works.
+tensorflow>=2.15,<2.17
+tensorflowjs>=4.17,<5
+numpy
+pandas
+opencv-python-headless
+pillow
+albumentations
+scikit-learn
+matplotlib
+seaborn
+wandb
+dvc[gdrive]
+pytest
