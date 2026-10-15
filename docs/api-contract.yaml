@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.1.0
+  version: 0.2.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
@@ -72,6 +72,12 @@ paths:
           $ref: "#/components/responses/ValidationError"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "503":
+          description: The SMS provider refused or didn't answer (`code` is `sms_unavailable`). Safe to retry shortly.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /auth/otp/verify/:
     post:
@@ -190,7 +196,11 @@ paths:
     post:
       tags: [profile]
       operationId: createFarm
-      summary: Add a farm
+      summary: Add a farm (idempotent on client_id)
+      description: |
+        Farms are created on the phone, possibly offline, and may be sent more than once. Sending a `client_id`
+        this farmer already used returns the existing farm unchanged (200). A `client_id` that belongs to another
+        farmer is rejected (409) and the phone should generate a new one.
       requestBody:
         required: true
         content:
@@ -204,10 +214,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Farm"
+        "200":
+          description: Already created earlier with this client_id; returned unchanged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Farm"
         "400":
           $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The client_id belongs to another farmer (`code` is `conflict`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /diagnoses/sync/:
     post:
