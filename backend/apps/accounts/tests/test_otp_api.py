@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.accounts.models import Farmer, OtpCode
 from apps.accounts.sms import SmsError
+from apps.core.tests.contract import assert_matches_contract
 
 pytestmark = pytest.mark.django_db
 
@@ -40,7 +41,7 @@ def wrong(code):
 
 
 def assert_error_shape(body, code):
-    assert set(body) <= {"code", "message", "fields"}, body
+    assert_matches_contract(body, "Error")
     assert body["code"] == code, body
     assert isinstance(body["message"], str) and body["message"]
 
@@ -122,6 +123,7 @@ class TestVerifyCode:
         response = verify(api, request_code(api, sms_outbox))
         assert response.status_code == 200, response.json()
         body = response.json()
+        assert_matches_contract(body, "TokenPair")
         assert set(body) == {"access", "refresh", "is_new_user"}
         assert body["is_new_user"] is True
         farmer = Farmer.objects.get(phone=PHONE)

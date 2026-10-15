@@ -1,8 +1,10 @@
-"""Auth endpoints: contract `/auth/otp/request/`, `/auth/otp/verify/` and `/auth/token/refresh/`.
+"""Account endpoints: sign-in (contract `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`) and
+the farmer's own profile (`/me/`).
 
-The rules live in apps/accounts/otp.py; these views only translate between HTTP and that module.
+The sign-in rules live in apps/accounts/otp.py; these views only translate between HTTP and that module.
 """
 
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import exceptions, status
 from rest_framework.permissions import AllowAny
@@ -12,10 +14,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.core.exceptions import ServiceUnavailable
+from apps.core.serializers import ErrorSerializer, validate_model
 
 from . import otp
 from .serializers import (
-    ErrorSerializer,
+    FarmerSerializer,
+    FarmerUpdateSerializer,
     OtpRequestResponseSerializer,
     OtpRequestSerializer,
     OtpVerifySerializer,
@@ -112,3 +116,50 @@ class OtpVerifyView(PublicAuthView):
 )
 class RefreshView(TokenRefreshView):
     """simplejwt's refresh, with rotation: each refresh token works once (see SIMPLE_JWT in settings)."""
+
+
+def apply_profile_update(farmer, changes):
+    """Apply a profile edit with last-write-wins on `updated_at` (docs/offline-sync.md).
+
+    Returns True if the edit was applied. The phone may send an edit made offline days ago. It wins only if it
+    is newer than what the server has, so an old edit can't undo a newer one made on another device.
+    Timestamps in the future (a phone clock running fast) count as "now", so a wrong clock can't lock the
+    profile against later edits.
+    """
+    now = timezone.now()
+    edited_at = min(changes.pop("updated_at", now), now)
+    if edited_at <= farmer.updated_at:
+        return False
+    for field, value in changes.items():
+        setattr(farmer, field, value)
+    farmer.updated_at = edited_at
+    validate_model(farmer, exclude=["password"])
+    farmer.save(update_fields=[*changes, "updated_at"])
+    return True
+
+
+class MeView(APIView):
+    """The signed-in farmer's profile. Contract `GET /me/`, `PATCH /me/`."""
+
+    @extend_schema(
+        tags=["profile"],
+        operation_id="getProfile",
+        summary="Current farmer profile",
+        responses={200: FarmerSerializer, 401: ErrorSerializer},
+    )
+    def get(self, request):
+        return Response(FarmerSerializer(request.user).data)
+
+    @extend_schema(
+        tags=["profile"],
+        operation_id="updateProfile",
+        summary="Update profile (last-write-wins on updated_at)",
+        request=FarmerUpdateSerializer,
+        responses={200: FarmerSerializer, 400: ErrorSerializer, 401: ErrorSerializer},
+    )
+    def patch(self, request):
+        serializer = FarmerUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        apply_profile_update(request.user, dict(serializer.validated_data))
+        # Always return the server's current profile, so a phone whose edit lost catches up.
+        return Response(FarmerSerializer(request.user).data)

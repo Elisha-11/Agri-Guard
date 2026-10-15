@@ -30,6 +30,11 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Swappable SMS backends: console (development), in-memory (tests), Africa's Talking (staging/production).
 - `manage.py purge_otp_codes`, and a read-only admin page for sign-in codes.
 - Every API error now uses the contract's `Error` shape `{code, message, fields}`.
+- Profile endpoints `GET/PATCH /me/` with last-write-wins on the phone's `updated_at` (future timestamps count
+  as now), and farm endpoints `GET/POST /farms/`, idempotent on `client_id`. Locations are rounded to 3 decimal
+  places on the server too. See `docs/backend/profile-and-farms.md`.
+- Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
+  `jsonschema`).
 
 ### Changed
 

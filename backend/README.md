@@ -60,7 +60,8 @@ backend/
 ```
 
 What each model stores and which rules it enforces is in
-[docs/backend/data-model.md](../docs/backend/data-model.md).
+[docs/backend/data-model.md](../docs/backend/data-model.md). Endpoint guides:
+[auth.md](../docs/backend/auth.md) (sign-in) and [profile-and-farms.md](../docs/backend/profile-and-farms.md).
 
 ## Conventions
 
@@ -70,7 +71,11 @@ What each model stores and which rules it enforces is in
 - **Rules go in the database when possible** (`CheckConstraint`, `UniqueConstraint`), and in `clean()` otherwise.
   The API serializers call `full_clean()`.
 - **Tests use the factories** in `apps/core/tests/factories.py`, and the `taxonomy` fixture whenever a disease is
-  involved.
+  involved. Use the `farmer_api` fixture (a client with a real JWT) for endpoints that need sign-in.
+- **Every endpoint test checks the response against the contract** with
+  `assert_matches_contract(body, "SchemaName")` from `apps/core/tests/contract.py`.
+- **API writes go through `validate_model()`** (`apps/core/serializers.py`), so the model's rules apply to the API
+  exactly as they do in the admin.
 - **Errors use the contract's `Error` shape.** Raise DRF exceptions; `apps/core/exceptions.py` formats them. Give
   each new error a stable `code` the PWA can switch on.
 - **Synced records are append-only** and keyed by a client-generated `client_id` (docs/offline-sync.md).

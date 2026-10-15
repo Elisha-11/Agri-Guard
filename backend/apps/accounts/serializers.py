@@ -2,7 +2,10 @@
 
 from rest_framework import serializers
 
+from apps.core.choices import Language
 from apps.core.validators import validate_zambian_phone
+
+from .models import Farmer
 
 
 class OtpRequestSerializer(serializers.Serializer):
@@ -39,9 +42,57 @@ class RefreshedTokensSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
-class ErrorSerializer(serializers.Serializer):
-    """Contract `Error`, produced by apps.core.exceptions.exception_handler. Used for the API docs."""
+class NullableBlankCharField(serializers.CharField):
+    """Contract `string | null` stored as "" in the database (Django's convention for text fields)."""
 
-    code = serializers.CharField()
-    message = serializers.CharField()
-    fields = serializers.DictField(child=serializers.ListField(child=serializers.CharField()), required=False)
+    def __init__(self, **kwargs):
+        kwargs.setdefault("allow_null", True)
+        kwargs.setdefault("allow_blank", True)
+        kwargs.setdefault("required", False)
+        super().__init__(**kwargs)
+
+    def validate_empty_values(self, data):
+        if data is None:
+            return True, ""
+        return super().validate_empty_values(data)
+
+    def to_representation(self, value):
+        return value or None
+
+
+class FarmerSerializer(serializers.ModelSerializer):
+    """Contract `Farmer` (GET/PATCH /me/ response)."""
+
+    display_name = NullableBlankCharField(max_length=80)
+    province = NullableBlankCharField(max_length=40)
+    district = NullableBlankCharField(max_length=60)
+
+    class Meta:
+        model = Farmer
+        fields = [
+            "id",
+            "phone",
+            "display_name",
+            "preferred_language",
+            "province",
+            "district",
+            "role",
+            "photo_consent",
+            "location_consent",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class FarmerUpdateSerializer(serializers.Serializer):
+    """Contract `FarmerUpdate`. Phone and role can't be changed here."""
+
+    display_name = NullableBlankCharField(max_length=80)
+    preferred_language = serializers.ChoiceField(choices=Language, required=False)
+    province = NullableBlankCharField(max_length=40)
+    district = NullableBlankCharField(max_length=60)
+    photo_consent = serializers.BooleanField(required=False)
+    location_consent = serializers.BooleanField(required=False)
+    updated_at = serializers.DateTimeField(
+        required=False, help_text="When the edit was made on the phone. Omit to mean 'now'."
+    )

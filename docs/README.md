@@ -20,6 +20,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 | [../backend/README.md](../backend/README.md) | Running, checking and laying out the Django API; backend conventions |
 | [backend/data-model.md](backend/data-model.md) | Every backend model, how it maps to the contract, and the rules the database enforces |
 | [backend/auth.md](backend/auth.md) | Phone + SMS code sign-in: endpoints, limits, tokens, SMS setup, PWA guidance |
+| [backend/profile-and-farms.md](backend/profile-and-farms.md) | `/me/` and `/farms/`: payloads, last-write-wins, idempotent farm creation |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 
 ## Decisions
