@@ -77,6 +77,7 @@ erDiagram
 | `apps.farms` | `Farm` | A farmer's fields, created on the phone |
 | `apps.catalog` | `Disease`, `DiseaseAdvice`, `UiMessage` | What the model can recognise, the advice per language, and the fixed app messages ([advisory-bundle.md](advisory-bundle.md)) |
 | `apps.diagnoses` | `Diagnosis`, `Feedback` | Synced diagnoses and corrections, both append-only |
+| `apps.releases` | `ModelRelease` | Published model versions; exactly one is current ([model-releases.md](model-releases.md)) |
 
 ## Mapping to the contract
 
@@ -90,8 +91,9 @@ erDiagram
 | `AdvisoryBundle.ui` | `catalog.UiMessage` | One row per message key and language; English seeded by migration `catalog.0003` |
 | `labels.json` `classes[]` | `catalog.Disease` | Loaded with `manage.py load_taxonomy`, never edited by hand |
 
-`OtpCode` backs `/auth/otp/*` and isn't part of any response; see [auth.md](auth.md). Not modelled yet, because
-it arrives with its endpoint: model releases (`/model/latest/`).
+`OtpCode` backs `/auth/otp/*` and isn't part of any response; see [auth.md](auth.md). `ModelRelease` backs
+`/model/latest/` (contract `ModelManifest`, built by `ModelRelease.manifest()`); see
+[model-releases.md](model-releases.md).
 
 ## Rules the code enforces
 
