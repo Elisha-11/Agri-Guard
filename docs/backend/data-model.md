@@ -75,7 +75,7 @@ erDiagram
 | `apps.core` | `GeoPointMixin` (abstract) | Shared choices (`choices.py`), validators (`validators.py`) and the location fields |
 | `apps.accounts` | `Farmer`, `OtpCode` | The user model (`AUTH_USER_MODEL`): phone login, profile, consent flags. SMS sign-in codes ([auth.md](auth.md)) |
 | `apps.farms` | `Farm` | A farmer's fields, created on the phone |
-| `apps.catalog` | `Disease`, `DiseaseAdvice` | What the model can recognise, and the advice per language |
+| `apps.catalog` | `Disease`, `DiseaseAdvice`, `UiMessage` | What the model can recognise, the advice per language, and the fixed app messages ([advisory-bundle.md](advisory-bundle.md)) |
 | `apps.diagnoses` | `Diagnosis`, `Feedback` | Synced diagnoses and corrections, both append-only |
 
 ## Mapping to the contract
@@ -87,6 +87,7 @@ erDiagram
 | `DiagnosisCreate` / `Diagnosis` | `diagnoses.Diagnosis` | `prediction` is flattened into columns: `class_id` → `disease`, plus `class_index`, `confidence`, `status`, `severity`, `top_k`, `model_version`, `inference_ms`. `farm_client_id` → `farm`. `has_photo` is a property |
 | `FeedbackCreate` | `diagnoses.Feedback` | `diagnosis_client_id` → `diagnosis`, `corrected_class_id` → `corrected_disease` |
 | `DiseaseAdvice` | `catalog.DiseaseAdvice` | `class_id` comes from the related `Disease`. `treatment` / `prevention` / `follow_up` are `AdviceSection` JSON |
+| `AdvisoryBundle.ui` | `catalog.UiMessage` | One row per message key and language; English seeded by migration `catalog.0003` |
 | `labels.json` `classes[]` | `catalog.Disease` | Loaded with `manage.py load_taxonomy`, never edited by hand |
 
 `OtpCode` backs `/auth/otp/*` and isn't part of any response; see [auth.md](auth.md). Not modelled yet, because
