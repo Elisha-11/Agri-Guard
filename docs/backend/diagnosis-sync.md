@@ -127,7 +127,7 @@ farmer's farms, the disease list and any already-stored `client_id`s. A test fai
 5. On a network error or 5xx, keep everything and retry with the backoff in offline-sync.md. Resending is always
    safe.
 
-## Not built yet
+## Related
 
-- `GET /diagnoses/`: history, for restoring onto a new phone.
-- `PUT /diagnoses/{client_id}/photo/`: photo upload.
+- Reading diagnoses back (new phone, second device): [diagnosis-history.md](diagnosis-history.md).
+- Not built yet: `PUT /diagnoses/{client_id}/photo/`, photo upload.

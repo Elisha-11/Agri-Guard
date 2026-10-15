@@ -22,6 +22,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 | [backend/auth.md](backend/auth.md) | Phone + SMS code sign-in: endpoints, limits, tokens, SMS setup, PWA guidance |
 | [backend/profile-and-farms.md](backend/profile-and-farms.md) | `/me/` and `/farms/`: payloads, last-write-wins, idempotent farm creation |
 | [backend/advisory-bundle.md](backend/advisory-bundle.md) | `GET /advisory/bundle/`: content rules, language fallback, ETag caching, writing advice, sample data |
+| [backend/diagnosis-history.md](backend/diagnosis-history.md) | `GET /diagnoses/`: restoring history onto a new phone, cursor paging, `since` |
 | [backend/feedback.md](backend/feedback.md) | `POST /feedback/`: who can give feedback, corrections, idempotency, queue order |
 | [backend/model-releases.md](backend/model-releases.md) | `GET /model/latest/`; releasing a model step by step with `register_model`; rollback |
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |

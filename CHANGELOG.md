@@ -50,6 +50,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   any diagnosis for extension-officer accounts; idempotent on `client_id` (201 / 200 / 409); append-only;
   self-reported `given_by_role` with the sending account always recorded. See `docs/backend/feedback.md` and
   ADR 0010.
+- Diagnosis history `GET /diagnoses/`: the farmer's own diagnoses, newest first, cursor-paginated (100 per
+  page), with `since` for catching up; 400 for a bad cursor or `since`. See `docs/backend/diagnosis-history.md`.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 

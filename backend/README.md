@@ -56,7 +56,7 @@ backend/
 │   ├── accounts/        Farmer (the user model), OtpCode, SMS backends, sign-in endpoints
 │   ├── farms/           Farm
 │   ├── catalog/         Disease, DiseaseAdvice, UiMessage, advisory bundle, `load_taxonomy`, `load_sample_advice`
-│   ├── diagnoses/       Diagnosis, Feedback, sync and feedback endpoints
+│   ├── diagnoses/       Diagnosis, Feedback; sync, history and feedback endpoints
 │   └── releases/        ModelRelease, `register_model`, /model/latest/
 └── conftest.py          `taxonomy` fixture: the real 19 classes
 ```
@@ -65,7 +65,8 @@ What each model stores and which rules it enforces is in
 [docs/backend/data-model.md](../docs/backend/data-model.md). Endpoint guides:
 [auth.md](../docs/backend/auth.md) (sign-in), [profile-and-farms.md](../docs/backend/profile-and-farms.md) and
 [diagnosis-sync.md](../docs/backend/diagnosis-sync.md), [advisory-bundle.md](../docs/backend/advisory-bundle.md),
-[model-releases.md](../docs/backend/model-releases.md) and [feedback.md](../docs/backend/feedback.md).
+[model-releases.md](../docs/backend/model-releases.md), [feedback.md](../docs/backend/feedback.md) and
+[diagnosis-history.md](../docs/backend/diagnosis-history.md).
 
 ## Conventions
 
