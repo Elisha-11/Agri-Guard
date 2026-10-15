@@ -196,7 +196,11 @@ paths:
     post:
       tags: [profile]
       operationId: createFarm
-      summary: Add a farm
+      summary: Add a farm (idempotent on client_id)
+      description: |
+        Farms are created on the phone, possibly offline, and may be sent more than once. Sending a `client_id`
+        this farmer already used returns the existing farm unchanged (200). A `client_id` that belongs to another
+        farmer is rejected (409) and the phone should generate a new one.
       requestBody:
         required: true
         content:
@@ -210,10 +214,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Farm"
+        "200":
+          description: Already created earlier with this client_id; returned unchanged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Farm"
         "400":
           $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The client_id belongs to another farmer (`code` is `conflict`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /diagnoses/sync/:
     post:
