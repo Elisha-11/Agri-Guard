@@ -141,7 +141,7 @@ class TestPaging:
             DiagnosisFactory(farmer=farmer, farm=FarmFactory(owner=farmer))
         with CaptureQueriesContext(connection) as queries:
             page(farmer_api)
-        assert len(queries) <= 3, [q["sql"] for q in queries]  # user lookup + one page query (farms joined)
+        assert len(queries) <= 2, [q["sql"] for q in queries]  # the signed-in user + the page (farms joined)
 
 
 class TestSince:

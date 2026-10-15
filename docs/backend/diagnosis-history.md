@@ -78,5 +78,4 @@ lands in the same instant). Tests cover both cases.
 
 ## Performance
 
-One page costs 3 queries: the signed-in user, the page itself, with farms joined, and DRF's cursor bookkeeping.
-A test fails if this grows.
+One page costs 2 queries: the signed-in user, and the page itself with farms joined. A test fails if this grows.
