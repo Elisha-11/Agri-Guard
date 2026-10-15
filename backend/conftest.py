@@ -26,3 +26,21 @@ def sms_outbox():
     LocmemSmsBackend.outbox.clear()
     yield LocmemSmsBackend.outbox
     LocmemSmsBackend.outbox.clear()
+
+
+@pytest.fixture
+def farmer(db):
+    from apps.core.tests.factories import FarmerFactory
+
+    return FarmerFactory(phone="+260971234567")
+
+
+@pytest.fixture
+def farmer_api(farmer):
+    """An API client signed in as `farmer` with a real JWT, exactly as the PWA sends it."""
+    from rest_framework.test import APIClient
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(farmer).access_token}")
+    return client
