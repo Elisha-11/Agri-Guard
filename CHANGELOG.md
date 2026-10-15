@@ -22,7 +22,6 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Test that the backend's enums and phone pattern match `docs/api-contract.yaml`.
 - `backend/README.md`, `docs/backend/data-model.md`, and ADRs 0003 (phone-based user model), 0004 (coordinates as
   decimals) and 0005 (class id as disease key).
-
 - Phone sign-in (contract `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`): 6-digit SMS codes,
   hashed at rest, 10-minute lifetime, 3 requests per phone per 15 minutes, 5 guesses per code; the farmer account
   is created on first sign-in. 60-minute access tokens, 90-day rotating refresh tokens. See
