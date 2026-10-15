@@ -8,7 +8,7 @@ import uuid
 
 from rest_framework import serializers
 
-from apps.core.choices import Crop, PredictionStatus, Severity
+from apps.core.choices import Crop, PredictionStatus, Role, Severity
 from apps.core.serializers import GeoPointField
 
 MAX_BATCH = 25  # contract: items maxItems
@@ -109,3 +109,30 @@ class SyncResultSerializer(serializers.Serializer):
 
 class SyncResponseSerializer(serializers.Serializer):
     results = SyncResultSerializer(many=True)
+
+
+class FeedbackCreateSerializer(serializers.Serializer):
+    """Contract `FeedbackCreate`: whether a synced diagnosis was right, and if not, what it really was."""
+
+    client_id = serializers.UUIDField()
+    diagnosis_client_id = serializers.UUIDField()
+    was_correct = serializers.BooleanField()
+    corrected_class_id = serializers.CharField(
+        max_length=64, required=False, allow_null=True, allow_blank=True
+    )
+    comment = serializers.CharField(max_length=500, required=False, allow_null=True, allow_blank=True)
+    given_by_role = serializers.ChoiceField(choices=Role, required=False)
+
+    def validate(self, data):
+        if data.get("was_correct") and data.get("corrected_class_id"):
+            raise serializers.ValidationError(
+                {"corrected_class_id": "Leave empty when the diagnosis was correct."}
+            )
+        return data
+
+
+class FeedbackResultSerializer(serializers.Serializer):
+    """Response of POST /feedback/ (201 created, 200 already stored)."""
+
+    id = serializers.UUIDField()
+    client_id = serializers.UUIDField()
