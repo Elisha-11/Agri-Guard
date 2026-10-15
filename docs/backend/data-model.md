@@ -73,7 +73,7 @@ erDiagram
 | App | Models | Purpose |
 |-----|--------|---------|
 | `apps.core` | `GeoPointMixin` (abstract) | Shared choices (`choices.py`), validators (`validators.py`) and the location fields |
-| `apps.accounts` | `Farmer` | The user model (`AUTH_USER_MODEL`). Phone login, profile, consent flags |
+| `apps.accounts` | `Farmer`, `OtpCode` | The user model (`AUTH_USER_MODEL`): phone login, profile, consent flags. SMS sign-in codes ([auth.md](auth.md)) |
 | `apps.farms` | `Farm` | A farmer's fields, created on the phone |
 | `apps.catalog` | `Disease`, `DiseaseAdvice` | What the model can recognise, and the advice per language |
 | `apps.diagnoses` | `Diagnosis`, `Feedback` | Synced diagnoses and corrections, both append-only |
@@ -89,8 +89,8 @@ erDiagram
 | `DiseaseAdvice` | `catalog.DiseaseAdvice` | `class_id` comes from the related `Disease`. `treatment` / `prevention` / `follow_up` are `AdviceSection` JSON |
 | `labels.json` `classes[]` | `catalog.Disease` | Loaded with `manage.py load_taxonomy`, never edited by hand |
 
-Not modelled yet, because they arrive with their endpoints: one-time SMS codes (`/auth/otp/*`) and model releases
-(`/model/latest/`).
+`OtpCode` backs `/auth/otp/*` and isn't part of any response; see [auth.md](auth.md). Not modelled yet, because
+it arrives with its endpoint: model releases (`/model/latest/`).
 
 ## Rules the code enforces
 
@@ -122,8 +122,8 @@ stops matching `docs/api-contract.yaml`.
 
 ## Behaviour worth knowing
 
-- **Farmers have no password.** `Farmer.objects.create_user(phone)` sets an unusable password. They will sign in by
-  SMS code. Only staff (`createsuperuser`) have passwords, for the admin.
+- **Farmers have no password.** `Farmer.objects.create_user(phone)` sets an unusable password. They sign in by
+  SMS code ([auth.md](auth.md)). Only staff (`createsuperuser`) have passwords, for the admin.
 - **Profile `updated_at` is set by the API, not automatically.** It holds the phone's timestamp of the edit, so an
   older offline edit arriving late can't overwrite a newer one (offline-sync.md, last-write-wins).
 - **`Diagnosis.reported_at`** is the time to use in any report. It is `captured_at`, unless the phone clock was

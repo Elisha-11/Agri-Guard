@@ -19,13 +19,23 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - `manage.py load_taxonomy` loads the disease classes from `ml/labels.json` and refuses changes that would reorder
   them.
 - Django admin for all models, including a phone-based "add farmer" form.
-- Test that the backend's enums and phone pattern match `docs/api-contract.yaml`; 88 backend tests in total.
+- Test that the backend's enums and phone pattern match `docs/api-contract.yaml`.
 - `backend/README.md`, `docs/backend/data-model.md`, and ADRs 0003 (phone-based user model), 0004 (coordinates as
   decimals) and 0005 (class id as disease key).
+
+- Phone sign-in (contract `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`): 6-digit SMS codes,
+  hashed at rest, 10-minute lifetime, 3 requests per phone per 15 minutes, 5 guesses per code; the farmer account
+  is created on first sign-in. 60-minute access tokens, 90-day rotating refresh tokens. See
+  `docs/backend/auth.md` and ADR 0006.
+- Swappable SMS backends: console (development), in-memory (tests), Africa's Talking (staging/production).
+- `manage.py purge_otp_codes`, and a read-only admin page for sign-in codes.
+- Every API error now uses the contract's `Error` shape `{code, message, fields}`.
 
 ### Changed
 
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
+- `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
+  (see `.env.example`). The CI and test keys were lengthened.
 
 ## [0.1.0] - 2026-10-15
 

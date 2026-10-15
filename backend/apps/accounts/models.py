@@ -1,4 +1,4 @@
-"""The Farmer account. It is Django's user model for the whole project (AUTH_USER_MODEL), see ADR 0003."""
+"""The Farmer account (the project's user model, ADR 0003) and SMS sign-in codes (ADR 0006)."""
 
 import uuid
 
@@ -98,3 +98,27 @@ class Farmer(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.display_name or self.phone
+
+
+class OtpCode(models.Model):
+    """A one-time sign-in code sent by SMS. Contract `/auth/otp/request/` and `/auth/otp/verify/`.
+
+    Only a keyed hash of the code is stored, so neither a database leak nor an admin can read live codes.
+    Not linked to Farmer, because the first code is sent before the account exists. See apps/accounts/otp.py.
+    """
+
+    phone = models.CharField(max_length=13, validators=[validate_zambian_phone], db_index=True)
+    code_hash = models.CharField(
+        max_length=64, help_text="HMAC-SHA256 of phone and code, keyed by SECRET_KEY."
+    )
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    expires_at = models.DateTimeField(help_text="Set to now when a newer code is requested.")
+    attempts = models.PositiveSmallIntegerField(default=0, help_text="Wrong guesses so far.")
+    used_at = models.DateTimeField(null=True, blank=True, help_text="When it was successfully used.")
+
+    class Meta:
+        verbose_name = "SMS sign-in code"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.phone} @ {self.created_at:%Y-%m-%d %H:%M}"

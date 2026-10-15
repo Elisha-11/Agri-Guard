@@ -25,6 +25,10 @@ python manage.py runserver
 | http://localhost:8000/api/docs/ | Interactive API docs, generated from the code |
 | http://localhost:8000/admin/ | Django admin: farmers, diagnoses, and the advice text agronomists edit |
 
+**Signing in locally:** `POST /api/v1/auth/otp/request/` with `{"phone": "+260971234567"}`. No SMS is sent; the
+code is printed in the `runserver` window. Then `POST /api/v1/auth/otp/verify/` with the phone and code. Details,
+including real SMS through Africa's Talking, are in [docs/backend/auth.md](../docs/backend/auth.md).
+
 SQLite is the default. For PostgreSQL, run `docker compose up -d db` from the repo root, then set `DATABASE_URL` in
 `.env` (see `.env.example`). CI always runs the tests on PostgreSQL.
 
@@ -47,8 +51,8 @@ backend/
 │   ├── settings/        base.py (shared), dev.py, test.py, prod.py
 │   └── urls.py          /api/v1/, /api/schema/, /api/docs/, /admin/
 ├── apps/
-│   ├── core/            health check, shared choices, validators, GeoPointMixin, test factories
-│   ├── accounts/        Farmer (the user model, phone login)
+│   ├── core/            health check, shared choices, validators, GeoPointMixin, error format, test factories
+│   ├── accounts/        Farmer (the user model), OtpCode, SMS backends, sign-in endpoints
 │   ├── farms/           Farm
 │   ├── catalog/         Disease, DiseaseAdvice, `load_taxonomy` command
 │   └── diagnoses/       Diagnosis, Feedback
@@ -67,4 +71,6 @@ What each model stores and which rules it enforces is in
   The API serializers call `full_clean()`.
 - **Tests use the factories** in `apps/core/tests/factories.py`, and the `taxonomy` fixture whenever a disease is
   involved.
+- **Errors use the contract's `Error` shape.** Raise DRF exceptions; `apps/core/exceptions.py` formats them. Give
+  each new error a stable `code` the PWA can switch on.
 - **Synced records are append-only** and keyed by a client-generated `client_id` (docs/offline-sync.md).

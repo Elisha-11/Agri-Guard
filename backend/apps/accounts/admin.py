@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import FarmerChangeForm, FarmerCreationForm
-from .models import Farmer
+from .models import Farmer, OtpCode
 
 
 @admin.register(Farmer)
@@ -32,3 +32,19 @@ class FarmerAdmin(UserAdmin):
         ("Dates", {"fields": ["date_joined", "last_login", "updated_at"]}),
     ]
     add_fieldsets = [(None, {"classes": ["wide"], "fields": ["phone", "password1", "password2"]})]
+
+
+@admin.register(OtpCode)
+class OtpCodeAdmin(admin.ModelAdmin):
+    """Read-only, for support ("I never got my code"). Codes are hashed, so no one can read them here."""
+
+    list_display = ["phone", "created_at", "expires_at", "attempts", "used_at"]
+    search_fields = ["phone"]
+    date_hierarchy = "created_at"
+    exclude = ["code_hash"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

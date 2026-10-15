@@ -19,6 +19,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 |----------|----------------|
 | [../backend/README.md](../backend/README.md) | Running, checking and laying out the Django API; backend conventions |
 | [backend/data-model.md](backend/data-model.md) | Every backend model, how it maps to the contract, and the rules the database enforces |
+| [backend/auth.md](backend/auth.md) | Phone + SMS code sign-in: endpoints, limits, tokens, SMS setup, PWA guidance |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 
 ## Decisions
@@ -33,6 +34,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0003](decisions/0003-phone-based-user-model.md) | Farmer is the Django user model, keyed on phone number | Proposed |
 | [0004](decisions/0004-coordinates-as-decimals.md) | Coordinates as two 3-dp decimals, not PostGIS (for now) | Proposed |
 | [0005](decisions/0005-class-id-as-disease-key.md) | Class id string is the Disease primary key; diseases load only from labels.json | Proposed |
+| [0006](decisions/0006-sms-otp-and-token-lifetimes.md) | SMS-code sign-in; 60-min access and 90-day rotating refresh tokens | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
