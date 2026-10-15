@@ -4,6 +4,8 @@ the farmer's own profile (`/me/`).
 The sign-in rules live in apps/accounts/otp.py; these views only translate between HTTP and that module.
 """
 
+from datetime import timedelta
+
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import exceptions, status
@@ -125,11 +127,19 @@ def apply_profile_update(farmer, changes):
     is newer than what the server has, so an old edit can't undo a newer one made on another device.
     Timestamps in the future (a phone clock running fast) count as "now", so a wrong clock can't lock the
     profile against later edits.
+
+    An edit without `updated_at` is happening online right now, so it always wins. Its timestamp is nudged
+    past the stored one if needed: two quick edits can land in the same clock tick, and the second must not
+    be dropped as "not newer".
     """
     now = timezone.now()
-    edited_at = min(changes.pop("updated_at", now), now)
-    if edited_at <= farmer.updated_at:
-        return False
+    client_time = changes.pop("updated_at", None)
+    if client_time is None:
+        edited_at = max(now, farmer.updated_at + timedelta(microseconds=1))
+    else:
+        edited_at = min(client_time, now)
+        if edited_at <= farmer.updated_at:
+            return False
     for field, value in changes.items():
         setattr(farmer, field, value)
     farmer.updated_at = edited_at
