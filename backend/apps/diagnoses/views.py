@@ -1,11 +1,13 @@
-"""Contract `POST /diagnoses/sync/` (rules in apps/diagnoses/sync.py) and `POST /feedback/`.
+"""Contract `POST /diagnoses/sync/` (rules in apps/diagnoses/sync.py), `GET /diagnoses/` and
+`POST /feedback/`.
 
 See docs/offline-sync.md, docs/backend/diagnosis-sync.md and docs/backend/feedback.md.
 """
 
 from django.db import IntegrityError, transaction
-from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework import exceptions, status
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from rest_framework import exceptions, serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,9 +17,12 @@ from apps.core.choices import Role
 from apps.core.serializers import ErrorSerializer, validate_model
 
 from .models import Diagnosis, Feedback
+from .pagination import HistoryPagination
 from .serializers import (
+    DiagnosisSerializer,
     FeedbackCreateSerializer,
     FeedbackResultSerializer,
+    HistoryPageSerializer,
     SyncBatchSerializer,
     SyncRequestSerializer,
     SyncResponseSerializer,
@@ -38,6 +43,40 @@ class DiagnosisSyncView(APIView):
         batch = SyncBatchSerializer(data=request.data)
         batch.is_valid(raise_exception=True)
         return Response({"results": sync_diagnoses(request.user, batch.validated_data["items"])})
+
+
+class HistoryQuerySerializer(serializers.Serializer):
+    since = serializers.DateTimeField(required=False, help_text="Only diagnoses received after this time.")
+
+
+class DiagnosisHistoryView(APIView):
+    """Contract `GET /diagnoses/`: the farmer's own diagnoses, newest first, for restoring onto a new phone.
+
+    `since` (a `received_at` the phone already has) gives only what arrived after it, so a phone can catch up
+    cheaply. Follow `next` until it's null.
+    """
+
+    @extend_schema(
+        tags=["diagnoses"],
+        operation_id="listDiagnoses",
+        summary="The farmer's diagnosis history (for restoring on a new device)",
+        parameters=[
+            OpenApiParameter("cursor", OpenApiTypes.STR, description="From the previous page's `next`."),
+            OpenApiParameter(
+                "since", OpenApiTypes.DATETIME, description="Only diagnoses received after this."
+            ),
+        ],
+        responses={200: HistoryPageSerializer, 400: ErrorSerializer, 401: ErrorSerializer},
+    )
+    def get(self, request):
+        query = HistoryQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        diagnoses = Diagnosis.objects.filter(farmer=request.user).select_related("farm")
+        if "since" in query.validated_data:
+            diagnoses = diagnoses.filter(received_at__gt=query.validated_data["since"])
+        paginator = HistoryPagination()
+        page = paginator.paginate_queryset(diagnoses, request, view=self)
+        return paginator.get_paginated_response(DiagnosisSerializer(page, many=True).data)
 
 
 class FeedbackClientIdConflict(exceptions.APIException):

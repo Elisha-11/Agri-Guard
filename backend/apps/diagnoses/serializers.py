@@ -136,3 +136,46 @@ class FeedbackResultSerializer(serializers.Serializer):
 
     id = serializers.UUIDField()
     client_id = serializers.UUIDField()
+
+
+class DiagnosisSerializer(serializers.Serializer):
+    """Contract `Diagnosis` (DiagnosisCreate + id, received_at, has_photo), for history.
+
+    Rebuilds the nested `prediction` the phone originally sent from the flattened columns (ADR 0007), so a
+    restored phone gets back exactly what it would have stored itself.
+    """
+
+    id = serializers.UUIDField()
+    client_id = serializers.UUIDField()
+    farm_client_id = serializers.SerializerMethodField()
+    crop = serializers.CharField()
+    captured_at = serializers.DateTimeField()
+    received_at = serializers.DateTimeField()
+    location = GeoPointField()
+    prediction = serializers.SerializerMethodField()
+    app_version = serializers.CharField()
+    has_photo = serializers.BooleanField()
+
+    def get_farm_client_id(self, diagnosis) -> str | None:
+        return str(diagnosis.farm.client_id) if diagnosis.farm_id else None
+
+    def get_prediction(self, diagnosis) -> dict:
+        return {
+            "class_id": diagnosis.disease_id,
+            "class_index": diagnosis.class_index,
+            "confidence": diagnosis.confidence,
+            "status": diagnosis.status,
+            "severity": diagnosis.severity,
+            "top_k": diagnosis.top_k,
+            "model_version": diagnosis.model_version,
+            "inference_ms": diagnosis.inference_ms,
+        }
+
+
+class HistoryPageSerializer(serializers.Serializer):
+    """Response of GET /diagnoses/ (for the API docs; HistoryPagination builds it)."""
+
+    next = serializers.URLField(
+        allow_null=True, help_text="URL of the next (older) page, or null at the end."
+    )
+    results = DiagnosisSerializer(many=True)
