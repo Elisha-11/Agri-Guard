@@ -15,6 +15,7 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Changed
 
+- API contract 0.2.0: `POST /auth/otp/request/` can return 503 `sms_unavailable` when the SMS provider fails.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 
 ## [0.1.0] - 2026-10-15

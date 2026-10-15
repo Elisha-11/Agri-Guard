@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.1.0
+  version: 0.2.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
@@ -72,6 +72,12 @@ paths:
           $ref: "#/components/responses/ValidationError"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "503":
+          description: The SMS provider refused or didn't answer (`code` is `sms_unavailable`). Safe to retry shortly.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /auth/otp/verify/:
     post:
