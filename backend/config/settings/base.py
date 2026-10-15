@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.farms",
     "apps.catalog",
     "apps.diagnoses",
+    "apps.releases",
 ]
 
 # Farmers sign in with phone + SMS code, so the user model is keyed on phone (ADR 0003).

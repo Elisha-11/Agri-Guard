@@ -145,7 +145,9 @@ class TestLastWriteWins:
 
     def test_quick_successive_edits_all_apply(self, farmer_api, farmer):
         """Regression: edits in the same clock tick were dropped as 'not newer' (flaky on Windows)."""
-        with mock.patch("apps.accounts.views.timezone.now", return_value=farmer.updated_at + timedelta(hours=1)):
+        with mock.patch(
+            "apps.accounts.views.timezone.now", return_value=farmer.updated_at + timedelta(hours=1)
+        ):
             for district in ["Chipata", "Lundazi", "Petauke"]:
                 farmer_api.patch(URL, {"district": district}, format="json")
         farmer.refresh_from_db()
