@@ -45,7 +45,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   `conflict` if the id belongs to another farmer.
 - API contract 0.3.0: `DiseaseAdvice.lang` (which language an advisory bundle entry is in, for English
   fallback); `AdvisoryBundle.ui` keys documented, including `no_advice`; `GET /model/latest/` returns 404
-  `no_model` before the first release.
+  `no_model` before the first release; `POST /feedback/` returns `FeedbackResult` `{id, client_id}` and 409
+  `conflict`.
 - `docs/offline-sync.md` (0.3.0): queue flush order (profile, farms, diagnoses, feedback); duplicates keep the
   stored copy; what makes a sync batch a 400; server drops locations without consent.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.

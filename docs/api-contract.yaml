@@ -401,6 +401,10 @@ paths:
       tags: [feedback]
       operationId: submitFeedback
       summary: Farmer or extension officer says whether a diagnosis was right (idempotent on client_id)
+      description: |
+        The diagnosis must already be synced, and be the farmer's own (extension-officer accounts may give
+        feedback on any diagnosis). Otherwise the response is a 400 on `diagnosis_client_id`. Append-only:
+        several feedback items per diagnosis are kept.
       requestBody:
         required: true
         content:
@@ -410,12 +414,26 @@ paths:
       responses:
         "201":
           description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackResult"
         "200":
-          description: Already stored (duplicate client_id)
+          description: Already stored by this account (duplicate client_id); the stored copy is unchanged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackResult"
         "400":
           $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The client_id was used by another account (`code` is `conflict`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:
@@ -852,3 +870,14 @@ components:
         given_by_role:
           type: string
           enum: [farmer, extension_officer]
+
+    FeedbackResult:
+      type: object
+      required: [id, client_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+          format: uuid
