@@ -61,7 +61,8 @@ backend/
 
 What each model stores and which rules it enforces is in
 [docs/backend/data-model.md](../docs/backend/data-model.md). Endpoint guides:
-[auth.md](../docs/backend/auth.md) (sign-in) and [profile-and-farms.md](../docs/backend/profile-and-farms.md).
+[auth.md](../docs/backend/auth.md) (sign-in), [profile-and-farms.md](../docs/backend/profile-and-farms.md) and
+[diagnosis-sync.md](../docs/backend/diagnosis-sync.md).
 
 ## Conventions
 

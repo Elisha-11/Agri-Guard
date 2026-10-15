@@ -33,6 +33,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Profile endpoints `GET/PATCH /me/` with last-write-wins on the phone's `updated_at` (future timestamps count
   as now), and farm endpoints `GET/POST /farms/`, idempotent on `client_id`. Locations are rounded to 3 decimal
   places on the server too. See `docs/backend/profile-and-farms.md`.
+- Diagnosis sync `POST /diagnoses/sync/`: batches of up to 25, one result per item (created, duplicate,
+  conflict, invalid with errors keyed by payload path), each item in its own savepoint. Location is stored only
+  with the farmer's consent. About 80 queries per full batch. See `docs/backend/diagnosis-sync.md` and ADR 0007.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
