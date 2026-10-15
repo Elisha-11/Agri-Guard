@@ -155,3 +155,33 @@ class DiseaseAdvice(models.Model):
             errors["safety_warning"] = "A safety warning is required whenever chemicals are involved."
         if errors:
             raise ValidationError(errors)
+
+
+class UiMessage(models.Model):
+    """A fixed message the PWA shows when it can't give a confident diagnosis. Contract `AdvisoryBundle.ui`.
+
+    These are safety messages ("show this plant to an extension officer"), so they are editable content
+    reviewed like advice, not strings hard-coded in the app. English defaults are created by a data
+    migration. Another language falls back to English, key by key, until it's translated.
+    """
+
+    class Key(models.TextChoices):
+        UNCERTAIN = "uncertain", "Uncertain: ask for another photo (model-output.md §4)"
+        CONSULT = "consult", "Consult: send to an extension officer, no treatment advice"
+        REJECTED = "rejected", "Rejected: photo failed quality checks, retake"
+        NO_ADVICE = "no_advice", "Diagnosis has no reviewed advice yet"
+
+    key = models.CharField(max_length=20, choices=Key)
+    lang = models.CharField(max_length=3, choices=Language)
+    text = models.TextField(help_text="Short and plain. Read aloud by voice narration.")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "app message"
+        ordering = ["key", "lang"]
+        constraints = [
+            models.UniqueConstraint(fields=["key", "lang"], name="catalog_uimessage_one_per_language")
+        ]
+
+    def __str__(self):
+        return f"{self.key} [{self.lang}]"
