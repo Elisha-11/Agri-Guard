@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.2.0
+  version: 0.3.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
@@ -735,6 +735,11 @@ components:
       properties:
         class_id:
           type: string
+        lang:
+          $ref: "#/components/schemas/Language"
+          description: |
+            Language this entry is actually in. Equals the bundle's `lang`, or `en` when that disease's advice
+            isn't published in the requested language yet (English fallback).
         name:
           type: string
           example: Grey Leaf Spot
@@ -778,7 +783,9 @@ components:
             $ref: "#/components/schemas/DiseaseAdvice"
         ui:
           type: object
-          description: Fixed messages for uncertain/consult/rejected states
+          description: |
+            Fixed messages, keyed `uncertain`, `consult`, `rejected` and `no_advice` (shown when a predicted class
+            has no published advice in the bundle). Each falls back to English until translated.
           additionalProperties:
             type: string
 

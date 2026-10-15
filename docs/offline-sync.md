@@ -1,4 +1,4 @@
-# Offline Sync Rules (contract v0.2.0)
+# Offline Sync Rules (contract v0.3.0)
 
 The PWA must work with **no connectivity for days**. Diagnoses are created on the device and pushed to the server
 later. The server is never required for a diagnosis to happen.
