@@ -26,7 +26,15 @@ INSTALLED_APPS = [
     "corsheaders",
     # local
     "apps.core",
+    "apps.accounts",
+    "apps.farms",
+    "apps.catalog",
+    "apps.diagnoses",
 ]
+
+# Farmers sign in with phone + SMS code, so the user model is keyed on phone (ADR 0003).
+# This must stay set from the very first migration; changing it later means rebuilding the database.
+AUTH_USER_MODEL = "accounts.Farmer"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

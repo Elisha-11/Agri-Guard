@@ -12,6 +12,16 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 - Documentation system: `docs/README.md` index, Architecture Decision Records in `docs/decisions/` (ADR 0001
   monorepo, ADR 0002 confidence thresholds), this changelog, and a Documentation section in CONTRIBUTING.
+- Backend data models in four new apps: `accounts.Farmer` (the user model, phone login, consent
+  flags), `farms.Farm`, `catalog.Disease` and `catalog.DiseaseAdvice` (advice per language, publishable only after
+  agronomist review), `diagnoses.Diagnosis` and `diagnoses.Feedback` (append-only, idempotent on `client_id`).
+  Database constraints and validation follow the contract; see `docs/backend/data-model.md`.
+- `manage.py load_taxonomy` loads the disease classes from `ml/labels.json` and refuses changes that would reorder
+  them.
+- Django admin for all models, including a phone-based "add farmer" form.
+- Test that the backend's enums and phone pattern match `docs/api-contract.yaml`; 88 backend tests in total.
+- `backend/README.md`, `docs/backend/data-model.md`, and ADRs 0003 (phone-based user model), 0004 (coordinates as
+  decimals) and 0005 (class id as disease key).
 
 ### Changed
 

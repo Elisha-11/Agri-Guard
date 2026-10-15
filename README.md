@@ -57,6 +57,7 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -r requirements/dev.txt
 cp .env.example .env
 python manage.py migrate
+python manage.py load_taxonomy        # the 19 disease classes from ml/labels.json
 python manage.py runserver
 # check: http://localhost:8000/api/v1/health/  and  http://localhost:8000/api/docs/
 pytest
@@ -68,6 +69,8 @@ The default `.env` uses SQLite so you can start without Docker. To run against P
 docker compose up -d db redis       # from the repo root
 # then in backend/.env set DATABASE_URL=postgres://agriguard:agriguard@localhost:5432/agriguard
 ```
+
+More detail (admin login, layout, conventions) is in [backend/README.md](backend/README.md).
 
 ### PWA (http://localhost:5173)
 

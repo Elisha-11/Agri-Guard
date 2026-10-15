@@ -17,7 +17,8 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 
 | Document | What it covers |
 |----------|----------------|
-| [../backend/README.md](../backend/README.md) | Running, testing and structuring the Django API (added with the backend's first feature) |
+| [../backend/README.md](../backend/README.md) | Running, checking and laying out the Django API; backend conventions |
+| [backend/data-model.md](backend/data-model.md) | Every backend model, how it maps to the contract, and the rules the database enforces |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 
 ## Decisions
@@ -29,6 +30,9 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 |---|----------|--------|
 | [0001](decisions/0001-monorepo.md) | One repository with `ml/`, `backend/` and `pwa/` folders | Proposed |
 | [0002](decisions/0002-confidence-thresholds.md) | Start with 0.70 / 0.40 confidence cut-offs, read from the manifest | Proposed (re-tune in Step 6) |
+| [0003](decisions/0003-phone-based-user-model.md) | Farmer is the Django user model, keyed on phone number | Proposed |
+| [0004](decisions/0004-coordinates-as-decimals.md) | Coordinates as two 3-dp decimals, not PostGIS (for now) | Proposed |
+| [0005](decisions/0005-class-id-as-disease-key.md) | Class id string is the Disease primary key; diseases load only from labels.json | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
