@@ -274,14 +274,18 @@ paths:
       tags: [diagnoses]
       operationId: listDiagnoses
       summary: The farmer's diagnosis history (for restoring on a new device)
+      description: |
+        The signed-in farmer's own diagnoses, newest first by `received_at`, 100 per page. Follow `next` until
+        it is null; don't build cursors yourself.
       parameters:
         - name: cursor
           in: query
+          description: Opaque; taken from the previous page's `next`
           schema:
             type: string
         - name: since
           in: query
-          description: Only diagnoses received after this time
+          description: Only diagnoses received strictly after this time (pass the newest received_at you have)
           schema:
             type: string
             format: date-time
@@ -300,6 +304,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Diagnosis"
+        "400":
+          $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
