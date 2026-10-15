@@ -380,6 +380,7 @@ paths:
       tags: [model]
       operationId: getLatestModel
       summary: Which model the PWA should be running
+      description: The release currently selected for phones (not necessarily the newest registered).
       security: []
       responses:
         "200":
@@ -388,6 +389,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ModelManifest"
+        "404":
+          description: No model has been released yet (`code` is `no_model`); diagnosis isn't available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /feedback/:
     post:
