@@ -1,4 +1,4 @@
-# Offline Sync Rules (contract v0.1.0)
+# Offline Sync Rules (contract v0.2.0)
 
 The PWA must work with **no connectivity for days**. Diagnoses are created on the device and pushed to the server
 later. The server is never required for a diagnosis to happen.
@@ -11,6 +11,9 @@ later. The server is never required for a diagnosis to happen.
 ## Queue (PWA, IndexedDB store `sync_queue`)
 
 - Every new diagnosis and every feedback item is appended to the queue.
+- Flush in this order: profile edits (`PATCH /me/`), then farms (`POST /farms/`), then diagnoses, then feedback.
+  A diagnosis can only reference a farm the server already has, and a location is only kept if the server
+  already knows the farmer consented (see below).
 - Flush when: the app opens online, the `online` event fires, or Background Sync fires (where supported).
 - Batch size: up to **25 items** per `POST /api/v1/diagnoses/sync/`.
 - Retry with exponential backoff: 30 s, 2 min, 10 min, 1 h, then hourly. Reset on success.
@@ -27,8 +30,10 @@ later. The server is never required for a diagnosis to happen.
 | Known `client_id`, different owner | Reject | `conflict` |
 | Fails validation (unknown `class_id`, bad coordinates, …) | Reject that item only | `invalid` + `errors` |
 
+A `duplicate` is reported even if the resent copy differs or is invalid: the stored copy is kept as it was.
+
 The batch always returns **HTTP 200** with one result per item, in order, unless the whole request is malformed
-(400) or unauthenticated (401). The PWA removes `created` and `duplicate` items from the queue, keeps `invalid` items
+(400: `items` missing, empty or over 25, or an item without a valid UUID `client_id`) or unauthenticated (401). The PWA removes `created` and `duplicate` items from the queue, keeps `invalid` items
 for inspection in a "could not sync" list, and logs `conflict` to Sentry.
 
 ## Conflict policy
@@ -48,5 +53,7 @@ Reporting uses `captured_at` unless it is more than 30 days after `received_at` 
 ## Location and privacy
 
 - GPS is **optional** and requires explicit consent on first use.
+- The server stores a diagnosis's location only if the farmer's profile has `location_consent: true`. Otherwise
+  it drops the location and still creates the diagnosis.
 - Coordinates are rounded on the device to **3 decimal places (~110 m)** before storage or sync. That is enough for
   district-level outbreak mapping without pinpointing a homestead.

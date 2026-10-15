@@ -44,6 +44,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - API contract 0.2.0: `POST /auth/otp/request/` can return 503 `sms_unavailable` when the SMS provider fails.
 - API contract 0.2.0: `POST /farms/` is idempotent on `client_id`: 200 for a repeat from the same farmer, 409
   `conflict` if the id belongs to another farmer.
+- `docs/offline-sync.md` (0.2.0): queue flush order (profile, farms, diagnoses, feedback); duplicates keep the
+  stored copy; what makes a sync batch a 400; server drops locations without consent.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 - `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
   (see `.env.example`). The CI and test keys were lengthened.
