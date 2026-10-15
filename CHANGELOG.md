@@ -1,0 +1,56 @@
+# Changelog
+
+All notable changes to AgriGuard are recorded here, newest first. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
+
+Every pull request adds a line under **Unreleased** in the right group (Added, Changed, Fixed, Removed, Security).
+On release, Unreleased is renamed to the version and date, and `main` is tagged.
+
+## [Unreleased]
+
+### Added
+
+- Documentation system: `docs/README.md` index, Architecture Decision Records in `docs/decisions/` (ADR 0001
+  monorepo, ADR 0002 confidence thresholds), this changelog, and a Documentation section in CONTRIBUTING.
+- Backend data models in four new apps: `accounts.Farmer` (the user model, phone login, consent
+  flags), `farms.Farm`, `catalog.Disease` and `catalog.DiseaseAdvice` (advice per language, publishable only after
+  agronomist review), `diagnoses.Diagnosis` and `diagnoses.Feedback` (append-only, idempotent on `client_id`).
+  Database constraints and validation follow the contract; see `docs/backend/data-model.md`.
+- `manage.py load_taxonomy` loads the disease classes from `ml/labels.json` and refuses changes that would reorder
+  them.
+- Django admin for all models, including a phone-based "add farmer" form.
+- Test that the backend's enums and phone pattern match `docs/api-contract.yaml`.
+- `backend/README.md`, `docs/backend/data-model.md`, and ADRs 0003 (phone-based user model), 0004 (coordinates as
+  decimals) and 0005 (class id as disease key).
+
+- Phone sign-in (contract `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`): 6-digit SMS codes,
+  hashed at rest, 10-minute lifetime, 3 requests per phone per 15 minutes, 5 guesses per code; the farmer account
+  is created on first sign-in. 60-minute access tokens, 90-day rotating refresh tokens. See
+  `docs/backend/auth.md` and ADR 0006.
+- Swappable SMS backends: console (development), in-memory (tests), Africa's Talking (staging/production).
+- `manage.py purge_otp_codes`, and a read-only admin page for sign-in codes.
+- Every API error now uses the contract's `Error` shape `{code, message, fields}`.
+
+### Changed
+
+- CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
+- `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
+  (see `.env.example`). The CI and test keys were lengthened.
+
+## [0.1.0] - 2026-10-15
+
+### Added
+
+- Project foundations (Build Step 1): README, CONTRIBUTING with branching and Definition of Done, PR template,
+  pre-commit hooks, `.gitignore` that blocks datasets and model files, `docker-compose.yml` for PostGIS and Redis,
+  and a CI workflow for the contract, backend and PWA.
+- Draft API contract (Build Step 2): `docs/api-contract.yaml` (14 operations), `docs/model-output.md`,
+  `docs/offline-sync.md` and the draft `docs/class-taxonomy.md` (19 classes).
+- Backend: Django 5.2 + DRF skeleton with `GET /api/v1/health/` and OpenAPI docs at `/api/docs/`.
+- PWA: Vite + Bootstrap shell that calls the health endpoint, and the tested prediction logic in
+  `pwa/src/lib/prediction.js`.
+- ML: `ml/labels.json` generated from the taxonomy, with tests.
+- `pwa/package-lock.json` committed.
+
+[Unreleased]: https://github.com/Elisha-11/Agri-Guard/compare/main...develop
+[0.1.0]: https://github.com/Elisha-11/Agri-Guard/tree/main

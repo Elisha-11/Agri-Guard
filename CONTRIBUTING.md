@@ -53,6 +53,27 @@ A task is done only when **all** of these are true:
 - [ ] User-facing text added to all four translation files (en, ny, bem, toi).
 - [ ] README / API docs / user guide updated in the same PR.
 
+## Documentation
+
+Everything we build is documented **in the same pull request** as the code. A reviewer should reject a PR that
+changes behaviour without updating the docs.
+
+| You changed… | Update |
+|--------------|--------|
+| Anything a user, teammate or reviewer would notice | A line under **Unreleased** in [CHANGELOG.md](CHANGELOG.md) |
+| An endpoint, a payload or the prediction format | `docs/api-contract.yaml` / `model-output.md` / `offline-sync.md` (contract PR rules above) |
+| Backend models, apps or settings | [backend/README.md](backend/README.md) and [docs/backend/](docs/backend/) |
+| PWA screens, storage or service worker | `pwa/README.md` and `docs/pwa/` |
+| Datasets, training or model conversion | [ml/README.md](ml/README.md) and the model card for that version |
+| A design choice someone might later ask "why?" about | A new ADR in [docs/decisions/](docs/decisions/) (copy `0000-template.md`) |
+| Any new document | Add it to the index in [docs/README.md](docs/README.md) |
+
+In code:
+
+- Every module, class and public function has a docstring that says **why** it exists, not just what it does.
+- Every Django model field has `help_text`. It shows in the admin and in the generated API docs.
+- Comments explain non-obvious decisions and link the contract section or ADR they follow.
+
 ## Data and model files
 
 Images, datasets and trained models are versioned with **DVC**, never committed as raw binaries. `.gitignore`

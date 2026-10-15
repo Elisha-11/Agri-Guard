@@ -23,13 +23,13 @@ the same pull request.
 
 ```
 Agri-Guard/
-├── docs/                    Shared contract (both developers sign off on changes)
+├── docs/                    All documentation; start at docs/README.md
 │   ├── api-contract.yaml    OpenAPI 3.1 spec: the source of truth for every endpoint
 │   ├── model-output.md      Shape of a prediction, severity bands, confidence thresholds
 │   ├── offline-sync.md      Sync payload, idempotency and conflict rules
-│   └── class-taxonomy.md    DRAFT crop/disease class list, pending agronomist sign-off
-├── shared/
-│   └── schemas/             JSON Schemas generated from the contract, used by tests on both sides
+│   ├── class-taxonomy.md    DRAFT crop/disease class list, pending agronomist sign-off
+│   └── decisions/           Architecture Decision Records: why things are the way they are
+├── CHANGELOG.md             What changed in each release
 ├── ml/                      Dataset tooling, training, evaluation, conversion (Developer A)
 ├── backend/                 Django 5 + DRF + PostGIS API (Developer A)
 ├── pwa/                     Vite + Bootstrap 5 + TensorFlow.js PWA (Developer B)
@@ -57,6 +57,7 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -r requirements/dev.txt
 cp .env.example .env
 python manage.py migrate
+python manage.py load_taxonomy        # the 19 disease classes from ml/labels.json
 python manage.py runserver
 # check: http://localhost:8000/api/v1/health/  and  http://localhost:8000/api/docs/
 pytest
@@ -68,6 +69,8 @@ The default `.env` uses SQLite so you can start without Docker. To run against P
 docker compose up -d db redis       # from the repo root
 # then in backend/.env set DATABASE_URL=postgres://agriguard:agriguard@localhost:5432/agriguard
 ```
+
+More detail (admin login, layout, conventions) is in [backend/README.md](backend/README.md).
 
 ### PWA (http://localhost:5173)
 
@@ -99,5 +102,6 @@ Tracking against the [System Development Plan](docs/) (14 build steps, 7 milesto
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: branch from `develop`, use Conventional Commits, and every PR needs
+Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: branch from `develop`, use Conventional Commits, document the change in
+the same PR ([docs/README.md](docs/README.md) is the index, [CHANGELOG.md](CHANGELOG.md) gets a line), and every PR needs
 the other developer's approval plus green CI.

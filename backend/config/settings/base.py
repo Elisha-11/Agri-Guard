@@ -1,5 +1,6 @@
 """Settings shared by every environment. Secrets and URLs come from the environment (.env locally)."""
 
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -22,11 +23,20 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "corsheaders",
     # local
     "apps.core",
+    "apps.accounts",
+    "apps.farms",
+    "apps.catalog",
+    "apps.diagnoses",
 ]
+
+# Farmers sign in with phone + SMS code, so the user model is keyed on phone (ADR 0003).
+# This must stay set from the very first migration; changing it later means rebuilding the database.
+AUTH_USER_MODEL = "accounts.Farmer"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -95,7 +105,33 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
     "DEFAULT_THROTTLE_RATES": {"anon": "60/min"},
+    # Every error body uses the contract's Error shape {code, message, fields}.
+    "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
 }
+
+# Tokens (ADR 0006). Farmers can be offline for weeks, so refresh tokens are long-lived; each one works once
+# (rotation + blacklist), so a stolen refresh token stops working as soon as the farmer's phone uses its copy.
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("JWT_ACCESS_MINUTES", default=60, cast=int)),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("JWT_REFRESH_DAYS", default=90, cast=int)),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,  # apps.accounts.otp updates it on sign-in instead
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# SMS sign-in codes (apps/accounts/otp.py, docs/backend/auth.md). Values match the contract's descriptions.
+OTP_TTL_SECONDS = 10 * 60
+OTP_MAX_REQUESTS = 3
+OTP_REQUEST_WINDOW_SECONDS = 15 * 60
+OTP_MAX_ATTEMPTS = 5
+
+# Where SMS go. The console backend prints codes in the runserver window (development only).
+SMS_BACKEND = config("SMS_BACKEND", default="apps.accounts.sms.ConsoleSmsBackend")
+AFRICASTALKING_USERNAME = config("AFRICASTALKING_USERNAME", default="")
+AFRICASTALKING_API_KEY = config("AFRICASTALKING_API_KEY", default="")
+AFRICASTALKING_SENDER_ID = config("AFRICASTALKING_SENDER_ID", default="")
+AFRICASTALKING_SANDBOX = config("AFRICASTALKING_SANDBOX", default=False, cast=bool)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "AgriGuard AI API",

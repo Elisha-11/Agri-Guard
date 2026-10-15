@@ -36,7 +36,7 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: config.settings.test
       DATABASE_URL: postgres://agriguard:agriguard@localhost:5432/agriguard
-      SECRET_KEY: ci-only-not-secret
+      SECRET_KEY: ci-only-not-secret-but-long-enough-for-jwt-hs256-signing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,8 +61,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      # switch to `npm ci` with npm caching once package-lock.json is committed
-      - run: npm install
+          cache: npm
+          cache-dependency-path: pwa/package-lock.json
+      - run: npm ci
       - run: npm run lint
       - run: npm test
       - run: npm run build
