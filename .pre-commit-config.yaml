@@ -17,11 +17,19 @@ repos:
         args: ["--fix"]
         files: ^(backend|ml)/
 
+  # One hook per folder, each with its own config: run from the repo root, black would otherwise
+  # fall back to its 88-column default instead of the projects' 110 (and fight CI's black --check).
   - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
       - id: black
-        files: ^(backend|ml)/
+        name: black (backend)
+        files: ^backend/
+        args: ["--config", "backend/pyproject.toml"]
+      - id: black
+        name: black (ml)
+        files: ^ml/
+        args: ["--config", "ml/pyproject.toml"]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0

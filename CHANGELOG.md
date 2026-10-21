@@ -68,6 +68,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Fixed
 
+- Pre-commit's black hook ran from the repo root with black's 88-column default, reformatting every backend and
+  `ml/` file it touched against the projects' 110 columns (and so failing CI's `black --check`). It now runs
+  once per folder with that folder's `pyproject.toml`.
 - `PATCH /me/`: two quick edits without `updated_at` could land in the same clock tick, and the second one was
   silently ignored. Edits without a timestamp now always apply.
 
