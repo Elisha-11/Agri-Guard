@@ -27,6 +27,12 @@ ml/data/raw/
 ml/data/processed/
 ml/data/interim/
 ml/models/
+# training runs and TF.js exports (ADR 0014): SavedModels, shards and model.json stay out of git
+ml/runs/
+ml/exports/
+ml/**/saved_model/
+ml/**/*.bin
+ml/**/model.json
 ml/wandb/
 *.h5
 *.keras
