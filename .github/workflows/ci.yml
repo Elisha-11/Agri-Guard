@@ -17,6 +17,23 @@ jobs:
       - run: pip install "openapi-spec-validator>=0.7,<1"
       - run: openapi-spec-validator docs/api-contract.yaml
 
+  ml:
+    name: ML scripts lint + tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # The scripts are standard library only; training dependencies (requirements.txt) aren't needed here.
+      - run: pip install "pytest>=8.3,<9" ruff==0.6.9 black==24.8.0
+      - run: ruff check .
+      - run: black --check .
+      - run: pytest
+
   backend:
     name: Backend lint + tests
     runs-on: ubuntu-latest
