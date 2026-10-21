@@ -69,6 +69,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   `no_model` before the first release; `POST /feedback/` returns `FeedbackResult` `{id, client_id}` and 409
   `conflict`; `GET /diagnoses/` documents paging (100, newest first, exclusive `since`) and a 400 for a bad
   `cursor` or `since`.
+- API contract 0.4.0: `PUT /diagnoses/{client_id}/photo/` adds 400 `invalid_photo` and 415
+  `unsupported_media_type`, names the error codes for 403 and 413, and documents that a resend replaces the
+  photo and that metadata is stripped.
 - `docs/offline-sync.md` (0.3.0): queue flush order (profile, farms, diagnoses, feedback); duplicates keep the
   stored copy; what makes a sync batch a 400; server drops locations without consent.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
