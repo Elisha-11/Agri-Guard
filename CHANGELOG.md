@@ -41,8 +41,18 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   English defaults, content-hash `bundle_version` with ETag / 304. See `docs/backend/advisory-bundle.md` and
   ADR 0008.
 - `manage.py load_sample_advice`: development-only placeholder advice for building the PWA.
+- Model releases and `GET /model/latest/` (public; 404 `no_model` before the first release). `manage.py
+  register_model` checks a converted model folder (shards present and at most 4 MB, at most 15 MB in total, labels
+  identical to the backend's taxonomy, versioned https URL), computes size and SHA-256, and writes
+  `manifest.json`. One release is current at a time; rollback is "make current" in the admin. See
+  `docs/backend/model-releases.md` and ADR 0009.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
+
+### Fixed
+
+- `PATCH /me/`: two quick edits without `updated_at` could land in the same clock tick, and the second one was
+  silently ignored. Edits without a timestamp now always apply.
 
 ### Changed
 

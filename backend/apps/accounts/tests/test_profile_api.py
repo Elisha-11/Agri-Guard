@@ -1,6 +1,7 @@
 """GET and PATCH /api/v1/me/, including last-write-wins (docs/offline-sync.md)."""
 
 from datetime import timedelta
+from unittest import mock
 
 import pytest
 from django.utils import timezone
@@ -141,6 +142,16 @@ class TestLastWriteWins:
         farmer_api.patch(URL, {"district": "Lundazi"}, format="json")
         farmer.refresh_from_db()
         assert farmer.district == "Lundazi"
+
+    def test_quick_successive_edits_all_apply(self, farmer_api, farmer):
+        """Regression: edits in the same clock tick were dropped as 'not newer' (flaky on Windows)."""
+        with mock.patch(
+            "apps.accounts.views.timezone.now", return_value=farmer.updated_at + timedelta(hours=1)
+        ):
+            for district in ["Chipata", "Lundazi", "Petauke"]:
+                farmer_api.patch(URL, {"district": district}, format="json")
+        farmer.refresh_from_db()
+        assert farmer.district == "Petauke"
 
     def test_no_timestamp_means_now(self, farmer_api, farmer):
         before = farmer.updated_at
