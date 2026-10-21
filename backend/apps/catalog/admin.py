@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Disease, DiseaseAdvice
+from .models import Disease, DiseaseAdvice, UiMessage
 
 
 class DiseaseAdviceInline(admin.StackedInline):
@@ -26,3 +26,11 @@ class DiseaseAdviceAdmin(admin.ModelAdmin):
     list_display = ["disease", "lang", "name", "is_published", "reviewed_by", "reviewed_at", "updated_at"]
     list_filter = ["lang", "is_published", "disease__crop", "involves_chemicals"]
     search_fields = ["name", "local_name", "disease__class_id"]
+
+
+@admin.register(UiMessage)
+class UiMessageAdmin(admin.ModelAdmin):
+    """Fixed messages for uncertain / consult / rejected results. Missing languages fall back to English."""
+
+    list_display = ["key", "lang", "text", "updated_at"]
+    list_filter = ["key", "lang"]

@@ -36,6 +36,11 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Diagnosis sync `POST /diagnoses/sync/`: batches of up to 25, one result per item (created, duplicate,
   conflict, invalid with errors keyed by payload path), each item in its own savepoint. Location is stored only
   with the farmer's consent. About 80 queries per full batch. See `docs/backend/diagnosis-sync.md` and ADR 0007.
+- Advisory bundle `GET /advisory/bundle/?lang=`: published advice only, English fallback per disease (each entry
+  says its `lang`), app messages (`uncertain`, `consult`, `rejected`, `no_advice`) editable in the admin with
+  English defaults, content-hash `bundle_version` with ETag / 304. See `docs/backend/advisory-bundle.md` and
+  ADR 0008.
+- `manage.py load_sample_advice`: development-only placeholder advice for building the PWA.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 

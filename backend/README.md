@@ -15,6 +15,7 @@ pip install -r requirements\dev.txt
 copy .env.example .env
 python manage.py migrate
 python manage.py load_taxonomy        # the 19 disease classes from ml/labels.json
+python manage.py load_sample_advice   # optional, dev only: placeholder advice so the PWA has content
 python manage.py createsuperuser      # asks for a phone number, e.g. +260971234567
 python manage.py runserver
 ```
@@ -54,7 +55,7 @@ backend/
 │   ├── core/            health check, shared choices, validators, GeoPointMixin, error format, test factories
 │   ├── accounts/        Farmer (the user model), OtpCode, SMS backends, sign-in endpoints
 │   ├── farms/           Farm
-│   ├── catalog/         Disease, DiseaseAdvice, `load_taxonomy` command
+│   ├── catalog/         Disease, DiseaseAdvice, UiMessage, advisory bundle, `load_taxonomy`, `load_sample_advice`
 │   └── diagnoses/       Diagnosis, Feedback
 └── conftest.py          `taxonomy` fixture: the real 19 classes
 ```
@@ -62,7 +63,7 @@ backend/
 What each model stores and which rules it enforces is in
 [docs/backend/data-model.md](../docs/backend/data-model.md). Endpoint guides:
 [auth.md](../docs/backend/auth.md) (sign-in), [profile-and-farms.md](../docs/backend/profile-and-farms.md) and
-[diagnosis-sync.md](../docs/backend/diagnosis-sync.md).
+[diagnosis-sync.md](../docs/backend/diagnosis-sync.md) and [advisory-bundle.md](../docs/backend/advisory-bundle.md).
 
 ## Conventions
 
