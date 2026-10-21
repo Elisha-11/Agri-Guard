@@ -29,6 +29,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
+| [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
 | [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
 
 ## Decisions
@@ -51,6 +52,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0011](decisions/0011-diagnosis-photo-rules.md) | Diagnosis photos: owner only, replace on resend, strip metadata on the server | Proposed |
 | [0012](decisions/0012-field-photo-metadata.md) | Field photo metadata: field and farmer codes, fixed vocabularies, a checker before intake | Proposed |
 | [0013](decisions/0013-farmer-level-split.md) | Split the dataset by farmer; a farmer's split never changes | Proposed |
+| [0014](decisions/0014-baseline-model-and-export.md) | Baseline: EfficientNetB0, float16 TF.js export, augmentation outside the model, BatchNorm frozen | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 

@@ -63,6 +63,14 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   in git); new farmers are placed to keep each class near 70 / 15 / 15; writes the per-photo
   `ml/data/processed/split.csv`; warns about classes with too few photos to evaluate. See `docs/ml/splitting.md`
   and ADR 0013.
+- `ml/scripts/train_baseline.py`: baseline EfficientNetB0 classifier, two stages (head, then the top blocks with
+  BatchNorm frozen), augmentation in the `tf.data` pipeline only, class weights, split by farmer or field when
+  `--metadata` is given (stratified random with a warning otherwise). Each run folder gets `run_config.json`,
+  per-class metrics, a confusion matrix, `labels.json` and a SavedModel. `--smoke` tests the whole pipeline on the
+  CPU in a few minutes, export included. See `docs/ml/training.md` and ADR 0014.
+- `ml/scripts/export_tfjs.py`: converts a SavedModel to a float16 TF.js graph model in shards of at most 4 MB and
+  checks the folder the way `register_model` will (size, shards, labels, version, input and output shape, ops the
+  phone can run, no augmentation ops). `--check FOLDER` checks an existing export.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
@@ -89,6 +97,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Field photo `metadata.csv` gains `field_id`, `farmer_code` and `notes`, so the dataset can be split by field
   and farmer; `stage` and `zone` now have fixed values (ADR 0012).
 - CI runs the `ml/` scripts' tests and lint (they weren't run before).
+- `ml/requirements.txt` pins the training stack verified by a smoke run: TensorFlow 2.18.1, Keras 3.15.1,
+  tensorflowjs 4.22.0. Unused packages (pandas, OpenCV, albumentations, scikit-learn, seaborn, wandb) are
+  dropped, and DVC is installed separately. Training runs and exports (`ml/runs/`, `ml/exports/`, `.bin`
+  shards, `model.json`) are git-ignored inside `ml/`.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 - `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
   (see `.env.example`). The CI and test keys were lengthened.
