@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.3.0
+  version: 0.4.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
@@ -314,7 +314,10 @@ paths:
       tags: [diagnoses]
       operationId: uploadDiagnosisPhoto
       summary: Attach the leaf photo to a synced diagnosis (optional, needs photo consent)
-      description: JPEG, max 1 MB, already resized on device. Used for model retraining and expert review.
+      description: |
+        JPEG, max 1 MB, already resized on device. Used for model retraining and expert review.
+        Sending again replaces the photo. The server strips metadata (EXIF, including GPS) before storing.
+        Checked in this order: consent (403), diagnosis (404), body (415, 413, 400).
       parameters:
         - name: client_id
           in: path
@@ -332,20 +335,32 @@ paths:
       responses:
         "204":
           description: Stored
+        "400":
+          description: invalid_photo. The body is empty or not a complete JPEG
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
-          description: Farmer has not given photo consent
+          description: photo_consent_required. Farmer has not given photo consent
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Diagnosis not synced yet
+          description: Diagnosis not synced yet, or not this farmer's
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "413":
-          description: Photo larger than 1 MB
+          description: photo_too_large. Photo larger than 1 MB (1,048,576 bytes)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: unsupported_media_type. Content-Type is not image/jpeg
           content:
             application/json:
               schema:
