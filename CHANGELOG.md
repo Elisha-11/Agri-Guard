@@ -55,6 +55,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   only on your own synced diagnoses (404); sending again replaces it. EXIF (including GPS), XMP, IPTC and comments
   are stripped before storing. 400 `invalid_photo` for a body that isn't a JPEG, 415 for the wrong content type.
   See `docs/backend/diagnosis-photo.md` and ADR 0011.
+- `ml/scripts/check_batch.py`: checks a batch of field photos and its `metadata.csv` before intake (columns,
+  class ids, stage and zone values, field/farmer codes, GPS inside Zambia, dates, missing or extra photos, HEIC,
+  too-small and duplicate photos) and counts photos per class. Template in `ml/templates/metadata.csv`. See
+  `docs/ml/field-data.md` and ADR 0012.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
@@ -78,6 +82,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   photo and that metadata is stripped.
 - `docs/offline-sync.md` (0.3.0): queue flush order (profile, farms, diagnoses, feedback); duplicates keep the
   stored copy; what makes a sync batch a 400; server drops locations without consent.
+- Field photo `metadata.csv` gains `field_id`, `farmer_code` and `notes`, so the dataset can be split by field
+  and farmer; `stage` and `zone` now have fixed values (ADR 0012).
+- CI runs the `ml/` scripts' tests and lint (they weren't run before).
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 - `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
   (see `.env.example`). The CI and test keys were lengthened.

@@ -28,6 +28,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 | [backend/model-releases.md](backend/model-releases.md) | `GET /model/latest/`; releasing a model step by step with `register_model`; rollback |
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
+| [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
 
 ## Decisions
 
@@ -47,6 +48,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0009](decisions/0009-model-releases.md) | Model releases: `register_model` checks, one current release, rollback by switching | Proposed |
 | [0010](decisions/0010-feedback-rules.md) | Feedback: owner or officer, self-reported role with sending account recorded, append-only | Proposed |
 | [0011](decisions/0011-diagnosis-photo-rules.md) | Diagnosis photos: owner only, replace on resend, strip metadata on the server | Proposed |
+| [0012](decisions/0012-field-photo-metadata.md) | Field photo metadata: field and farmer codes, fixed vocabularies, a checker before intake | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
