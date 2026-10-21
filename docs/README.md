@@ -23,6 +23,7 @@ Changes to these need approval from both developers (see [CONTRIBUTING](../CONTR
 | [backend/profile-and-farms.md](backend/profile-and-farms.md) | `/me/` and `/farms/`: payloads, last-write-wins, idempotent farm creation |
 | [backend/advisory-bundle.md](backend/advisory-bundle.md) | `GET /advisory/bundle/`: content rules, language fallback, ETag caching, writing advice, sample data |
 | [backend/diagnosis-history.md](backend/diagnosis-history.md) | `GET /diagnoses/`: restoring history onto a new phone, cursor paging, `since` |
+| [backend/diagnosis-photo.md](backend/diagnosis-photo.md) | `PUT /diagnoses/{client_id}/photo/`: photo consent, size and JPEG checks, metadata stripping, storage |
 | [backend/feedback.md](backend/feedback.md) | `POST /feedback/`: who can give feedback, corrections, idempotency, queue order |
 | [backend/model-releases.md](backend/model-releases.md) | `GET /model/latest/`; releasing a model step by step with `register_model`; rollback |
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |
@@ -45,6 +46,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0008](decisions/0008-advisory-bundle-content-rules.md) | Bundle: English fallback per disease with `lang`, content-hash version, app messages in the database | Proposed |
 | [0009](decisions/0009-model-releases.md) | Model releases: `register_model` checks, one current release, rollback by switching | Proposed |
 | [0010](decisions/0010-feedback-rules.md) | Feedback: owner or officer, self-reported role with sending account recorded, append-only | Proposed |
+| [0011](decisions/0011-diagnosis-photo-rules.md) | Diagnosis photos: owner only, replace on resend, strip metadata on the server | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
