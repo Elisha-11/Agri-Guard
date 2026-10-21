@@ -59,6 +59,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   class ids, stage and zone values, field/farmer codes, GPS inside Zambia, dates, missing or extra photos, HEIC,
   too-small and duplicate photos) and counts photos per class. Template in `ml/templates/metadata.csv`. See
   `docs/ml/field-data.md` and ADR 0012.
+- `ml/scripts/split.py`: train / val / test split by farmer. Assignments are permanent (`ml/splits/farmers.csv`,
+  in git); new farmers are placed to keep each class near 70 / 15 / 15; writes the per-photo
+  `ml/data/processed/split.csv`; warns about classes with too few photos to evaluate. See `docs/ml/splitting.md`
+  and ADR 0013.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
