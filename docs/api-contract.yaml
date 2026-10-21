@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.2.0
+  version: 0.3.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
@@ -274,14 +274,18 @@ paths:
       tags: [diagnoses]
       operationId: listDiagnoses
       summary: The farmer's diagnosis history (for restoring on a new device)
+      description: |
+        The signed-in farmer's own diagnoses, newest first by `received_at`, 100 per page. Follow `next` until
+        it is null; don't build cursors yourself.
       parameters:
         - name: cursor
           in: query
+          description: Opaque; taken from the previous page's `next`
           schema:
             type: string
         - name: since
           in: query
-          description: Only diagnoses received after this time
+          description: Only diagnoses received strictly after this time (pass the newest received_at you have)
           schema:
             type: string
             format: date-time
@@ -300,6 +304,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Diagnosis"
+        "400":
+          $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -380,6 +386,7 @@ paths:
       tags: [model]
       operationId: getLatestModel
       summary: Which model the PWA should be running
+      description: The release currently selected for phones (not necessarily the newest registered).
       security: []
       responses:
         "200":
@@ -388,12 +395,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ModelManifest"
+        "404":
+          description: No model has been released yet (`code` is `no_model`); diagnosis isn't available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /feedback/:
     post:
       tags: [feedback]
       operationId: submitFeedback
       summary: Farmer or extension officer says whether a diagnosis was right (idempotent on client_id)
+      description: |
+        The diagnosis must already be synced, and be the farmer's own (extension-officer accounts may give
+        feedback on any diagnosis). Otherwise the response is a 400 on `diagnosis_client_id`. Append-only:
+        several feedback items per diagnosis are kept.
       requestBody:
         required: true
         content:
@@ -403,12 +420,26 @@ paths:
       responses:
         "201":
           description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackResult"
         "200":
-          description: Already stored (duplicate client_id)
+          description: Already stored by this account (duplicate client_id); the stored copy is unchanged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackResult"
         "400":
           $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The client_id was used by another account (`code` is `conflict`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:
@@ -735,6 +766,11 @@ components:
       properties:
         class_id:
           type: string
+        lang:
+          $ref: "#/components/schemas/Language"
+          description: |
+            Language this entry is actually in. Equals the bundle's `lang`, or `en` when that disease's advice
+            isn't published in the requested language yet (English fallback).
         name:
           type: string
           example: Grey Leaf Spot
@@ -778,7 +814,9 @@ components:
             $ref: "#/components/schemas/DiseaseAdvice"
         ui:
           type: object
-          description: Fixed messages for uncertain/consult/rejected states
+          description: |
+            Fixed messages, keyed `uncertain`, `consult`, `rejected` and `no_advice` (shown when a predicted class
+            has no published advice in the bundle). Each falls back to English until translated.
           additionalProperties:
             type: string
 
@@ -838,3 +876,14 @@ components:
         given_by_role:
           type: string
           enum: [farmer, extension_officer]
+
+    FeedbackResult:
+      type: object
+      required: [id, client_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+          format: uuid

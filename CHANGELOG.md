@@ -22,7 +22,6 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Test that the backend's enums and phone pattern match `docs/api-contract.yaml`.
 - `backend/README.md`, `docs/backend/data-model.md`, and ADRs 0003 (phone-based user model), 0004 (coordinates as
   decimals) and 0005 (class id as disease key).
-
 - Phone sign-in (contract `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`): 6-digit SMS codes,
   hashed at rest, 10-minute lifetime, 3 requests per phone per 15 minutes, 5 guesses per code; the farmer account
   is created on first sign-in. 60-minute access tokens, 90-day rotating refresh tokens. See
@@ -65,6 +64,13 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - API contract 0.2.0: `POST /auth/otp/request/` can return 503 `sms_unavailable` when the SMS provider fails.
 - API contract 0.2.0: `POST /farms/` is idempotent on `client_id`: 200 for a repeat from the same farmer, 409
   `conflict` if the id belongs to another farmer.
+- API contract 0.3.0: `DiseaseAdvice.lang` (which language an advisory bundle entry is in, for English
+  fallback); `AdvisoryBundle.ui` keys documented, including `no_advice`; `GET /model/latest/` returns 404
+  `no_model` before the first release; `POST /feedback/` returns `FeedbackResult` `{id, client_id}` and 409
+  `conflict`; `GET /diagnoses/` documents paging (100, newest first, exclusive `since`) and a 400 for a bad
+  `cursor` or `since`.
+- `docs/offline-sync.md` (0.3.0): queue flush order (profile, farms, diagnoses, feedback); duplicates keep the
+  stored copy; what makes a sync batch a 400; server drops locations without consent.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 - `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
   (see `.env.example`). The CI and test keys were lengthened.
