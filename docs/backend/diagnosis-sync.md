@@ -130,4 +130,4 @@ farmer's farms, the disease list and any already-stored `client_id`s. A test fai
 ## Related
 
 - Reading diagnoses back (new phone, second device): [diagnosis-history.md](diagnosis-history.md).
-- Not built yet: `PUT /diagnoses/{client_id}/photo/`, photo upload.
+- Uploading the leaf photo after sync: [diagnosis-photo.md](diagnosis-photo.md).

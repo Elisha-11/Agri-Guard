@@ -51,6 +51,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   ADR 0010.
 - Diagnosis history `GET /diagnoses/`: the farmer's own diagnoses, newest first, cursor-paginated (100 per
   page), with `since` for catching up; 400 for a bad cursor or `since`. See `docs/backend/diagnosis-history.md`.
+- Diagnosis photo `PUT /diagnoses/{client_id}/photo/`: raw JPEG up to 1 MB, only with `photo_consent` (403),
+  only on your own synced diagnoses (404); sending again replaces it. EXIF (including GPS), XMP, IPTC and comments
+  are stripped before storing. 400 `invalid_photo` for a body that isn't a JPEG, 415 for the wrong content type.
+  See `docs/backend/diagnosis-photo.md` and ADR 0011.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 

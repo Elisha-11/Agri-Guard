@@ -1,9 +1,11 @@
-"""Contract `POST /diagnoses/sync/` (rules in apps/diagnoses/sync.py), `GET /diagnoses/` and
-`POST /feedback/`.
+"""Contract `POST /diagnoses/sync/` (rules in apps/diagnoses/sync.py), `GET /diagnoses/`,
+`PUT /diagnoses/{client_id}/photo/` and `POST /feedback/`.
 
-See docs/offline-sync.md, docs/backend/diagnosis-sync.md and docs/backend/feedback.md.
+See docs/offline-sync.md, docs/backend/diagnosis-sync.md, docs/backend/diagnosis-photo.md and
+docs/backend/feedback.md.
 """
 
+from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
@@ -18,6 +20,7 @@ from apps.core.serializers import ErrorSerializer, validate_model
 
 from .models import Diagnosis, Feedback
 from .pagination import HistoryPagination
+from .photos import InvalidPhoto, JpegParser, strip_metadata
 from .serializers import (
     DiagnosisSerializer,
     FeedbackCreateSerializer,
@@ -77,6 +80,62 @@ class DiagnosisHistoryView(APIView):
         paginator = HistoryPagination()
         page = paginator.paginate_queryset(diagnoses, request, view=self)
         return paginator.get_paginated_response(DiagnosisSerializer(page, many=True).data)
+
+
+class PhotoConsentRequired(exceptions.PermissionDenied):
+    default_detail = "The farmer has not agreed to share photos. Turn on photo sharing in Settings first."
+    default_code = "photo_consent_required"
+
+
+class DiagnosisNotSynced(exceptions.NotFound):
+    default_detail = "No synced diagnosis with this client_id. Sync diagnoses first."
+    default_code = "not_found"
+
+
+class DiagnosisPhotoView(APIView):
+    """Contract `PUT /diagnoses/{client_id}/photo/`: attach the leaf photo to one of the farmer's diagnoses.
+
+    Sending again replaces the photo, so a retry after a dropped connection is always safe. Metadata (EXIF,
+    including GPS) is stripped before the photo is stored (apps/diagnoses/photos.py, ADR 0011).
+    """
+
+    parser_classes = [JpegParser]
+
+    @extend_schema(
+        tags=["diagnoses"],
+        operation_id="uploadDiagnosisPhoto",
+        summary="Attach the leaf photo to a synced diagnosis (optional, needs photo consent)",
+        description="JPEG, max 1 MB, already resized on device. Used for model retraining and expert review.",
+        request={"image/jpeg": OpenApiTypes.BINARY},
+        responses={
+            204: OpenApiResponse(description="Stored"),
+            400: OpenApiResponse(ErrorSerializer, description="Not a valid JPEG"),
+            401: ErrorSerializer,
+            403: OpenApiResponse(ErrorSerializer, description="Farmer has not given photo consent"),
+            404: OpenApiResponse(ErrorSerializer, description="Diagnosis not synced yet"),
+            413: OpenApiResponse(ErrorSerializer, description="Photo larger than 1 MB"),
+            415: OpenApiResponse(ErrorSerializer, description="Content-Type is not image/jpeg"),
+        },
+    )
+    def put(self, request, client_id):
+        # Cheap checks first, so a phone without consent isn't made to send the whole photo.
+        if not request.user.photo_consent:
+            raise PhotoConsentRequired()
+        # Only the farmer's own diagnoses; another farmer's reads as "not synced" (as for feedback).
+        diagnosis = Diagnosis.objects.filter(farmer=request.user, client_id=client_id).first()
+        if diagnosis is None:
+            raise DiagnosisNotSynced()
+        if not isinstance(request.data, bytes):  # an empty body is parsed as {}
+            raise InvalidPhoto("The request body is empty. Send the JPEG bytes.")
+        photo = strip_metadata(request.data)
+
+        # The file name is fixed per diagnosis (photo_upload_path), so remove the old file first; otherwise
+        # the storage would save the new one under a different, suffixed name.
+        if diagnosis.photo:
+            diagnosis.photo.delete(save=False)
+        diagnosis.photo.save(f"{diagnosis.client_id}.jpg", ContentFile(photo), save=False)
+        diagnosis.save(update_fields=["photo"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FeedbackClientIdConflict(exceptions.APIException):
