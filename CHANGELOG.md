@@ -46,6 +46,12 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   identical to the backend's taxonomy, versioned https URL), computes size and SHA-256, and writes
   `manifest.json`. One release is current at a time; rollback is "make current" in the admin. See
   `docs/backend/model-releases.md` and ADR 0009.
+- Feedback `POST /feedback/`: was a diagnosis right, and if not, what was it. Allowed on your own diagnoses, or on
+  any diagnosis for extension-officer accounts; idempotent on `client_id` (201 / 200 / 409); append-only;
+  self-reported `given_by_role` with the sending account always recorded. See `docs/backend/feedback.md` and
+  ADR 0010.
+- Diagnosis history `GET /diagnoses/`: the farmer's own diagnoses, newest first, cursor-paginated (100 per
+  page), with `since` for catching up; 400 for a bad cursor or `since`. See `docs/backend/diagnosis-history.md`.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
