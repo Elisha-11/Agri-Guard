@@ -89,7 +89,8 @@ and are **never** committed to Git.
 
 ## Where we are
 
-Tracking against the [System Development Plan](docs/) (14 build steps, 7 milestones):
+Tracking against the [System Development Plan](docs/) (14 build steps, 7 milestones). Who does which task, and by
+when, is in the [work plan](docs/AgriGuard_Work_Plan.pdf) (snapshot of 21 Oct 2026).
 
 | Milestone | Due | Status |
 |-----------|-----|--------|

@@ -10,6 +10,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- `docs/AgriGuard_Work_Plan.pdf`: the Weeks 4–13 work plan (snapshot of 21 Oct 2026), linked from the README
+  and the docs index.
 - `.github/CODEOWNERS`: GitHub requests a review from each folder's owner and a backup. `docs/repo-settings.md`
   lists the branch protection to set on `main`, and ADR 0015 explains the choice. The PR template asks for all
   three approvals on `docs/` changes.

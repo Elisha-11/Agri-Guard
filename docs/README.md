@@ -56,6 +56,12 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
+## Planning
+
+| Document | What it covers |
+|----------|----------------|
+| [AgriGuard_Work_Plan.pdf](AgriGuard_Work_Plan.pdf) | Weeks 4–13: each owner's tasks with due dates, milestones M1–M7, interfaces between owners, working rules. A snapshot of 21 Oct 2026; the live tracker is the current version |
+
 ## History
 
 [CHANGELOG.md](../CHANGELOG.md) records what changed in each release, newest first.
