@@ -42,7 +42,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 ### Changed
 
 - README: the team is now three owners. Agness owns ML & model delivery (`ml/`, `pwa/src/inference/`),
-  Elisha owns API & infrastructure, Robert owns the PWA; PR approval is by code owner, and `docs/` needs all three.
+  Elisha owns API & infrastructure, Robert owns the PWA; PR approval is by code owner, and `docs/` needs all three. CONTRIBUTING, `ml/README.md`, `docs/README.md`,
+  `model-output.md`, the contract description, ADR 0002 and the taxonomy sign-off table use the same owners.
 - API contract 0.2.0: `POST /auth/otp/request/` can return 503 `sms_unavailable` when the SMS provider fails.
 - API contract 0.2.0: `POST /farms/` is idempotent on `client_id`: 200 for a repeat from the same farmer, 409
   `conflict` if the id belongs to another farmer.
