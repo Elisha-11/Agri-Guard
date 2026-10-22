@@ -26,5 +26,5 @@ Details are in [model-output.md §4](../model-output.md).
 
 ## Consequences
 
-- In Step 6, Developer A sets the final values from the calibration curve on the validation set and updates
+- In Step 6, the ML owner (Agness) sets the final values from the calibration curve on the validation set and updates
   model-output.md in a contract PR, superseding this ADR's numbers.

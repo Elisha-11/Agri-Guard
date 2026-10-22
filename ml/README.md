@@ -1,6 +1,7 @@
 # AgriGuard ML
 
-Owner: **Developer A (Elisha Lungu)**. Build Steps 3–7.
+Owner: **Agness** (ML & model delivery). Build Steps 3–7, plus the in-app inference module in `pwa/src/inference/`
+(Step 10).
 
 ```
 ml/

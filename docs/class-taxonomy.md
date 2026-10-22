@@ -56,5 +56,6 @@ disease of that crop in Zambia. Every **D** row needs agronomist confirmation.
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
 | Agronomist | | | |
-| Developer A | Elisha Lungu | | |
-| Developer B | Robert Ng'onga Chishangila | | |
+| ML & model delivery | Agness | | |
+| API & infrastructure | Elisha Lungu | | |
+| PWA & field UX | Robert Ng'onga Chishangila | | |
