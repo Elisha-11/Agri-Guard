@@ -14,4 +14,5 @@
 - [ ] Offline behaviour handled, or deferred and explained here
 - [ ] Strings added to en / ny / bem / toi
 - [ ] Docs updated (README / API contract / user guide)
-- [ ] Contract change? Both developers approve and `info.version` is bumped
+- [ ] Changes `docs/`? All three owners approve
+- [ ] Contract change? All three owners approve and `info.version` is bumped

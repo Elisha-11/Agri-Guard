@@ -31,7 +31,8 @@ Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `perf`, `ci`. Scopes:
 2. CI must be green (lint, tests, build).
 3. **The owner of the code it touches must approve.** Elisha owns `backend/` and `.github/`, Agness owns `ml/` and
    `pwa/src/inference/`, Robert owns the rest of `pwa/`. Changes to `docs/` need all three. No self-merges, including
-   for docs.
+   for docs. GitHub requests the reviewers automatically from [`.github/CODEOWNERS`](.github/CODEOWNERS); on
+   your own folder, the backup listed there approves. See [docs/repo-settings.md](docs/repo-settings.md).
 4. Squash-merge, delete the branch.
 
 ## Changing the contract
