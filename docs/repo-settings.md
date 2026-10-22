@@ -22,7 +22,8 @@ it. When someone else changes a folder, the owner should approve it; GitHub also
 ## Before turning protection on
 
 1. Agness and Robert accept their collaborator invites (Settings → Collaborators, role **Write**).
-2. Their GitHub usernames replace `@TODO-agness` and `@TODO-robert` in `.github/CODEOWNERS`.
+2. Agness's GitHub username replaces `@TODO-agness` in `.github/CODEOWNERS` (Robert is
+   `@robertngongachishangila-creator`).
 3. GitHub shows no errors on the CODEOWNERS file (open it on github.com; problems appear in a banner above it).
 
 ## Protect `main`
