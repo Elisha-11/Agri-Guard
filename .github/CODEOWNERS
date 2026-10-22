@@ -7,8 +7,8 @@
 #
 # The last matching line wins, so the more specific paths come after the general ones.
 #
-# TODO before merging: replace @Chilambwe360 with Agness's GitHub username. Everyone listed must be a collaborator
-# with write access, or GitHub ignores them and shows an error on this file.
+# GitHub usernames: Elisha @Elisha-11, Agness @Chilambwe360, Robert @robertngongachishangila-creator. Everyone
+# listed must be a collaborator with write access, or GitHub ignores them and shows an error on this file.
 
 # Fallback for anything not listed below (root files such as README.md, docker-compose.yml)
 *                       @Elisha-11 @robertngongachishangila-creator @Chilambwe360
