@@ -31,7 +31,8 @@ code is printed in the `runserver` window. Then `POST /api/v1/auth/otp/verify/` 
 including real SMS through Africa's Talking, are in [docs/backend/auth.md](../docs/backend/auth.md).
 
 SQLite is the default. For PostgreSQL, run `docker compose up -d db` from the repo root, then set `DATABASE_URL` in
-`.env` (see `.env.example`). CI always runs the tests on PostgreSQL.
+`.env` (see `.env.example`). CI always runs the tests on PostgreSQL. A few tests need it and are skipped on SQLite,
+such as the sync race tests in `apps/diagnoses/tests/test_sync_concurrency.py`.
 
 ## Check your work
 

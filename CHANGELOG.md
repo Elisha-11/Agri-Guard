@@ -10,6 +10,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- Sync race tests on PostgreSQL: two requests sending the same diagnosis at once store it once (`duplicate` or
+  `conflict` for the second), and batches in opposite order don't deadlock. See "Two requests at once" in
+  `docs/backend/diagnosis-sync.md`.
 - `.github/CODEOWNERS`: GitHub requests a review from each folder's owner and a backup. `docs/repo-settings.md`
   lists the branch protection to set on `main`, and ADR 0015 explains the choice. The PR template asks for all
   three approvals on `docs/` changes.

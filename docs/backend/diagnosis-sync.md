@@ -112,6 +112,20 @@ A diagnosis can name a farm by `farm_client_id`, but only a farm the server alre
 `captured_at` is stored as sent, and `received_at` is the server's time. Reports use `Diagnosis.reported_at`, which
 falls back to `received_at` when the phone's clock was clearly wrong (see [data-model.md](data-model.md)).
 
+## Two requests at once
+
+A phone can send the same diagnosis twice at the same moment: the app open in two tabs, or a retry while the first
+request is still running. Both requests look up the `client_id`, find nothing, and try to insert it. The database's
+unique `client_id` lets only one insert through. The other request catches the error, loads the stored row and
+reports `duplicate`, or `conflict` if another farmer's request won.
+
+Each item is inserted and committed on its own, never as one transaction for the whole batch. So two batches that
+share items in a different order never wait on each other (a deadlock).
+
+`apps/diagnoses/tests/test_sync_concurrency.py` checks all of this by releasing two requests together just before
+they insert. It needs PostgreSQL, so it is skipped on SQLite and runs in CI. If someone wraps the batch in one
+transaction, its last test fails with "deadlock detected".
+
 ## Performance
 
 A full batch of 25 costs about 80 database queries: 3 per item (savepoint, insert, release) plus a few to load the
