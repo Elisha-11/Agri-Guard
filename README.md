@@ -8,10 +8,11 @@ Nyanja, Bemba and Tonga, with voice narration.
 
 Submitted under the **iHub Innovation Programme** · Lusaka, Zambia · MVP window October–December 2026.
 
-| Role | Owner |
-|------|-------|
-| Developer A: AI/ML & Backend Lead | Elisha Lungu |
-| Developer B: Frontend, PWA & Integration Lead | Robert Ng'onga Chishangila |
+| Role | Owner | Folders |
+|------|-------|---------|
+| API & infrastructure: Django, database, sign-in, sync, advisory content, servers, CI/CD, security | Elisha Lungu | `backend/`, `.github/` |
+| ML & model delivery: images, labelling, training, conversion, in-app inference | Agness | `ml/`, `pwa/src/inference/` |
+| PWA & field UX: screens, camera, offline storage and sync queue, languages, voice, field testing | Robert Ng'onga Chishangila | rest of `pwa/` |
 
 ---
 
@@ -30,9 +31,9 @@ Agri-Guard/
 │   ├── class-taxonomy.md    DRAFT crop/disease class list, pending agronomist sign-off
 │   └── decisions/           Architecture Decision Records: why things are the way they are
 ├── CHANGELOG.md             What changed in each release
-├── ml/                      Dataset tooling, training, evaluation, conversion (Developer A)
-├── backend/                 Django 5 + DRF + PostGIS API (Developer A)
-├── pwa/                     Vite + Bootstrap 5 + TensorFlow.js PWA (Developer B)
+├── ml/                      Dataset tooling, training, evaluation, conversion (Agness)
+├── backend/                 Django 5 + DRF + PostGIS API (Elisha)
+├── pwa/                     Vite + Bootstrap 5 + TensorFlow.js PWA (Robert; src/inference/ is Agness)
 └── .github/workflows/       CI for backend, PWA and the contract
 ```
 
@@ -104,4 +105,4 @@ Tracking against the [System Development Plan](docs/) (14 build steps, 7 milesto
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: branch from `develop`, use Conventional Commits, document the change in
 the same PR ([docs/README.md](docs/README.md) is the index, [CHANGELOG.md](CHANGELOG.md) gets a line), and every PR needs
-the other developer's approval plus green CI.
+approval from the owner of the code it touches (changes to `docs/` need all three) plus green CI.
