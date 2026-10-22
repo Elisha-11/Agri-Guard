@@ -4,7 +4,7 @@ info:
   version: 0.4.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
-    Source of truth for every endpoint (Build Step 2). Changes require approval from both developers and a version
+    Source of truth for every endpoint (Build Step 2). Changes require approval from all three owners and a version
     bump (see CONTRIBUTING.md). Behaviour referenced here is detailed in `model-output.md` and `offline-sync.md`.
 
     Authentication is phone number + one-time code (OTP) because many farmers have no email. Successful verification

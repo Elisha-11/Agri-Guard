@@ -4,7 +4,7 @@ Start here. Every document in the project is listed below; if you add one, add i
 
 ## Contract (backend ↔ PWA ↔ model)
 
-Changes to these need approval from both developers (see [CONTRIBUTING](../CONTRIBUTING.md#changing-the-contract)).
+Changes to these need approval from all three owners (see [CONTRIBUTING](../CONTRIBUTING.md#changing-the-contract)).
 
 | Document | What it covers |
 |----------|----------------|

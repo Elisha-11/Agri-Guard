@@ -29,16 +29,18 @@ Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `perf`, `ci`. Scopes:
 
 1. Open the PR against `develop` and fill in the template.
 2. CI must be green (lint, tests, build).
-3. **The other developer must approve.** No self-merges, including for docs.
+3. **The owner of the code it touches must approve.** Elisha owns `backend/` and `.github/`, Agness owns `ml/` and
+   `pwa/src/inference/`, Robert owns the rest of `pwa/`. Changes to `docs/` need all three. No self-merges, including
+   for docs.
 4. Squash-merge, delete the branch.
 
 ## Changing the contract
 
-`docs/api-contract.yaml`, `docs/model-output.md` and `docs/offline-sync.md` are the agreement between the backend and
-the PWA. A change to any of them:
+`docs/api-contract.yaml`, `docs/model-output.md` and `docs/offline-sync.md` are the agreement between the backend, the
+model and the PWA. A change to any of them:
 
 - goes in its own PR with the `contract` scope (`docs(contract): …` or `feat(contract): …`),
-- must be approved by **both** developers,
+- must be approved by **all three** owners,
 - bumps `info.version` in `api-contract.yaml` (minor for additive changes, major for breaking ones).
 
 ## Definition of Done

@@ -1,7 +1,7 @@
 # Model Output Format (contract v0.1.0)
 
-This is the agreement between the model (Developer A) and the PWA inference layer (Developer B). The PWA never
-interprets raw tensors itself. It only uses `labels.json` and the rules below.
+This is the agreement between the model and its in-app inference module (Agness) and the PWA screens (Robert). The
+PWA never interprets raw tensors itself. It only uses `labels.json` and the rules below.
 
 ## 1. Files published with every model version
 
@@ -77,7 +77,7 @@ in the sync payload (`Prediction` schema in `api-contract.yaml`).
 | confidence < **0.40** | `consult` | "Please show this plant to an extension officer." No treatment advice shown |
 | image failed quality checks (blur, dark, too small) | `rejected` | Retake prompt; inference not run |
 
-These thresholds are **initial values**. Developer A re-tunes them in Step 6 from the calibration curve on the
+These thresholds are **initial values**. Agness re-tunes them in Step 6 from the calibration curve on the
 validation set and updates this table in a contract PR. The PWA must read them from `manifest.json`
 (`thresholds.confident`, `thresholds.uncertain`), not hard-code them.
 
