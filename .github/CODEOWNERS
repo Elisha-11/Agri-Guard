@@ -7,11 +7,11 @@
 #
 # The last matching line wins, so the more specific paths come after the general ones.
 #
-# TODO before merging: replace @TODO-agness with Agness's GitHub username. Everyone listed must be a collaborator
+# TODO before merging: replace @Chilambwe360 with Agness's GitHub username. Everyone listed must be a collaborator
 # with write access, or GitHub ignores them and shows an error on this file.
 
 # Fallback for anything not listed below (root files such as README.md, docker-compose.yml)
-*                       @Elisha-11 @robertngongachishangila-creator @TODO-agness
+*                       @Elisha-11 @robertngongachishangila-creator @Chilambwe360
 
 # API & infrastructure: Elisha, backup Robert (the PWA is the API's main user)
 /backend/               @Elisha-11 @robertngongachishangila-creator
@@ -19,15 +19,15 @@
 /docker-compose.yml     @Elisha-11 @robertngongachishangila-creator
 
 # ML & model delivery: Agness, backup Elisha (the model manifest and labels.json meet the backend here)
-/ml/                    @TODO-agness @Elisha-11
+/ml/                    @Chilambwe360 @Elisha-11
 
 # PWA & field UX: Robert, backup Agness
-/pwa/                   @robertngongachishangila-creator @TODO-agness
+/pwa/                   @robertngongachishangila-creator @Chilambwe360
 
 # In-app inference module: Agness, backup Robert (the diagnose(image) → Prediction interface)
-/pwa/src/inference/     @TODO-agness @robertngongachishangila-creator
+/pwa/src/inference/     @Chilambwe360 @robertngongachishangila-creator
 
 # Docs and the contract: all three are requested. GitHub accepts any one approval here, so "all three approve"
 # is a team rule checked in the PR template, not something GitHub enforces (ADR 0015).
-/docs/                  @Elisha-11 @TODO-agness @robertngongachishangila-creator
-/CONTRIBUTING.md        @Elisha-11 @TODO-agness @robertngongachishangila-creator
+/docs/                  @Elisha-11 @Chilambwe360 @robertngongachishangila-creator
+/CONTRIBUTING.md        @Elisha-11 @Chilambwe360 @robertngongachishangila-creator
