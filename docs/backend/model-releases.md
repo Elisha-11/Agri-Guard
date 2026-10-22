@@ -30,7 +30,9 @@ Code: `backend/apps/releases/` (`models.py`, `views.py`, `management/commands/re
 
 It's sent with `Cache-Control: no-cache`, so after a rollback no phone keeps a stale answer.
 
-## Releasing a model, step by step (Developer A)
+## Releasing a model, step by step
+
+Agness (ML owner) does step 1 and hands over the folder; Elisha (backend and hosting) does steps 2–5.
 
 1. **Convert** the trained model to TensorFlow.js with 4 MB shards, into a folder named after the version, e.g.
    `2026.11.0/`. Put that model's `labels.json` in the same folder, with `"model_version": "2026.11.0"`.
