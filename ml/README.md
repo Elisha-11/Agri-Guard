@@ -40,6 +40,14 @@ The index order in `labels.json` is the order of the model's output layer and is
   `python ml/scripts/split.py`, then commit `ml/splits/farmers.csv`. See
   [docs/ml/splitting.md](../docs/ml/splitting.md).
 
+## Training and export (Step 6)
+
+- Test the pipeline first (CPU, a few minutes, no dataset needed): `python ml/scripts/train_baseline.py --smoke`.
+- Train: `python ml/scripts/train_baseline.py --images <dir> --mapping <csv> --metadata <csv>` on a GPU (Colab).
+- Export for the PWA: `python ml/scripts/export_tfjs.py <run>/saved_model`, then `manage.py register_model`.
+- Setup (Colab, Windows), flags and outputs: [docs/ml/training.md](../docs/ml/training.md). Runs and exports
+  never go in git.
+
 ## Targets (Step 6 exit condition)
 
 - ≥ 85% held-out test accuracy across all five crops

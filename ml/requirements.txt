@@ -1,14 +1,13 @@
-# Training environment (Google Colab or local GPU). Pin exact versions once the baseline run works.
-tensorflow>=2.15,<2.17
-tensorflowjs>=4.17,<5
-numpy
-pandas
-opencv-python-headless
-pillow
-albumentations
-scikit-learn
-matplotlib
-seaborn
-wandb
-dvc[gdrive]
+# Training environment (Google Colab or local GPU). Verified with train_baseline.py --smoke on 2026-10-21.
+# tensorflowjs pulls tensorflow-decision-forests, which has no Windows wheels: on Windows install it with
+# --no-deps (see docs/ml/training.md). DVC (dataset versioning) isn't needed to train: whoever manages the
+# dataset installs it separately with `pip install "dvc[gdrive]"`.
+tensorflow==2.18.1
+keras==3.15.1
+tf-keras==2.18.0
+tensorflowjs==4.22.0
+tensorflow-hub==0.16.1
+numpy==2.0.2
+pillow==13.0.0
+matplotlib==3.11.2
 pytest

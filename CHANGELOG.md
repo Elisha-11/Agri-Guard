@@ -68,6 +68,19 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
   in git); new farmers are placed to keep each class near 70 / 15 / 15; writes the per-photo
   `ml/data/processed/split.csv`; warns about classes with too few photos to evaluate. See `docs/ml/splitting.md`
   and ADR 0013.
+- `ml/scripts/train_baseline.py`: baseline EfficientNetB0 classifier, two stages (head, then the top blocks with
+  BatchNorm frozen), augmentation in the `tf.data` pipeline only, class weights, split by farmer or field when
+  `--metadata` is given (stratified random with a warning otherwise). Each run folder gets `run_config.json`,
+  per-class metrics, a confusion matrix, `labels.json` and a SavedModel. `--smoke` tests the whole pipeline on the
+  CPU in a few minutes, export included. See `docs/ml/training.md` and ADR 0014.
+- `ml/scripts/export_tfjs.py`: converts a SavedModel to a float16 TF.js graph model in shards of at most 4 MB and
+  checks the folder the way `register_model` will (size, shards, labels, version, input and output shape, ops the
+  phone can run, no augmentation ops). `--check FOLDER` checks an existing export.
+- Model files are hosted on GitHub Pages from the separate public repo `Elisha-11/agri-guard-models`, at
+  `https://elisha-11.github.io/agri-guard-models/models/<version>/` (ADR 0016; Cloudflare R2 planned later).
+  `docs/backend/model-releases.md` has the publishing steps, a recipe for trying a release on a laptop first, and a
+  release log. The first release, baseline `2026.10.0` (pipeline test only, not for farmers), was published on
+  23 Oct 2026 and is current in a development database only.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 
@@ -81,6 +94,7 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - README: the team is now three owners. Agness owns ML & model delivery (`ml/`, `pwa/src/inference/`),
   Elisha owns API & infrastructure, Robert owns the PWA; PR approval is by code owner, and `docs/` needs all three. CONTRIBUTING, `ml/README.md`, `docs/README.md`,
   `model-output.md`, the contract description, ADR 0002 and the taxonomy sign-off table use the same owners.
+- `docs/backend/model-releases.md`: Agness converts the model, Elisha registers, uploads and makes it current.
 - API contract 0.2.0: `POST /auth/otp/request/` can return 503 `sms_unavailable` when the SMS provider fails.
 - API contract 0.2.0: `POST /farms/` is idempotent on `client_id`: 200 for a repeat from the same farmer, 409
   `conflict` if the id belongs to another farmer.
@@ -97,6 +111,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - Field photo `metadata.csv` gains `field_id`, `farmer_code` and `notes`, so the dataset can be split by field
   and farmer; `stage` and `zone` now have fixed values (ADR 0012).
 - CI runs the `ml/` scripts' tests and lint (they weren't run before).
+- `ml/requirements.txt` pins the training stack verified by a smoke run: TensorFlow 2.18.1, Keras 3.15.1,
+  tensorflowjs 4.22.0. Unused packages (pandas, OpenCV, albumentations, scikit-learn, seaborn, wandb) are
+  dropped, and DVC is installed separately. Training runs and exports (`ml/runs/`, `ml/exports/`, `.bin`
+  shards, `model.json`) are git-ignored inside `ml/`.
 - CI installs PWA dependencies with `npm ci` from the committed `package-lock.json`, with npm caching.
 - `SECRET_KEY` must be at least 32 characters because it now signs JWTs. Update your local `backend/.env`
   (see `.env.example`). The CI and test keys were lengthened.

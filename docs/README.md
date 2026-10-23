@@ -29,6 +29,7 @@ Changes to these need approval from all three owners (see [CONTRIBUTING](../CONT
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
+| [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
 | [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
 | [repo-settings.md](repo-settings.md) | Who reviews which folder (CODEOWNERS), and the GitHub branch protection settings to tick |
 
@@ -52,7 +53,9 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0011](decisions/0011-diagnosis-photo-rules.md) | Diagnosis photos: owner only, replace on resend, strip metadata on the server | Proposed |
 | [0012](decisions/0012-field-photo-metadata.md) | Field photo metadata: field and farmer codes, fixed vocabularies, a checker before intake | Proposed |
 | [0013](decisions/0013-farmer-level-split.md) | Split the dataset by farmer; a farmer's split never changes | Proposed |
+| [0014](decisions/0014-baseline-model-and-export.md) | Baseline: EfficientNetB0, float16 TF.js export, augmentation outside the model, BatchNorm frozen | Proposed |
 | [0015](decisions/0015-code-owners-and-branch-protection.md) | Reviews enforced by CODEOWNERS (owner plus backup); `main` protected | Proposed |
+| [0016](decisions/0016-model-hosting-github-pages.md) | Host model files on GitHub Pages in a separate public repo for now; move to Cloudflare R2 later | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
