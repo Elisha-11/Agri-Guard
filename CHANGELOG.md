@@ -10,6 +10,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- `.github/CODEOWNERS`: GitHub requests a review from each folder's owner and a backup. `docs/repo-settings.md`
+  lists the branch protection to set on `main`, and ADR 0015 explains the choice. The PR template asks for all
+  three approvals on `docs/` changes.
 - Documentation system: `docs/README.md` index, Architecture Decision Records in `docs/decisions/` (ADR 0001
   monorepo, ADR 0002 confidence thresholds), this changelog, and a Documentation section in CONTRIBUTING.
 - Backend data models in four new apps: `accounts.Farmer` (the user model, phone login, consent
