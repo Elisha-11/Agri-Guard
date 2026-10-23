@@ -94,14 +94,18 @@ Any problem prints a list and exits 1.
 ## Registering the baseline
 
 Baseline runs default to `--model-version 2026.10.0`, a real version so `register_model` accepts it unchanged. Say
-it's a baseline in the notes and **don't make it current**:
+it's a baseline in the notes and **don't make it current** on staging or production:
 
 ```bash
 cd backend
 python manage.py register_model ../ml/exports/2026.10.0 \
-    --base-url https://<cdn>/models/2026.10.0/ --min-app-version 0.1.0 \
+    --base-url https://elisha-11.github.io/agri-guard-models/models/2026.10.0/ --min-app-version 0.1.0 \
     --notes "Baseline: pipeline test only, not for farmers"
 ```
+
+`2026.10.0` is already published (23 Oct 2026). Give any later run you mean to publish a new `--model-version`
+(`2026.10.1`, `2026.11.0`, …): a published version never changes. Publishing steps are in
+[model-releases.md](../backend/model-releases.md).
 
 ## Flags
 

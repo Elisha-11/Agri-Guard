@@ -74,9 +74,11 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 - `ml/scripts/export_tfjs.py`: converts a SavedModel to a float16 TF.js graph model in shards of at most 4 MB and
   checks the folder the way `register_model` will (size, shards, labels, version, input and output shape, ops the
   phone can run, no augmentation ops). `--check FOLDER` checks an existing export.
-- `docs/backend/model-releases.md`: how to release a model on a laptop before a CDN is chosen (serve the folder
-  with CORS on `http://localhost:8001`), and a log of releases. The first one, baseline `2026.10.0`, went through
-  export → `register_model` → `/model/latest/` → TF.js on 23 Oct 2026, in a development database only.
+- Model files are hosted on GitHub Pages from the separate public repo `Elisha-11/agri-guard-models`, at
+  `https://elisha-11.github.io/agri-guard-models/models/<version>/` (ADR 0016; Cloudflare R2 planned later).
+  `docs/backend/model-releases.md` has the publishing steps, a recipe for trying a release on a laptop first, and a
+  release log. The first release, baseline `2026.10.0` (pipeline test only, not for farmers), was published on
+  23 Oct 2026 and is current in a development database only.
 - Contract tests: endpoint responses are validated against `docs/api-contract.yaml` (new dev dependency
   `jsonschema`).
 

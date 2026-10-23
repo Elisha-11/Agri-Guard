@@ -55,6 +55,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0013](decisions/0013-farmer-level-split.md) | Split the dataset by farmer; a farmer's split never changes | Proposed |
 | [0014](decisions/0014-baseline-model-and-export.md) | Baseline: EfficientNetB0, float16 TF.js export, augmentation outside the model, BatchNorm frozen | Proposed |
 | [0015](decisions/0015-code-owners-and-branch-protection.md) | Reviews enforced by CODEOWNERS (owner plus backup); `main` protected | Proposed |
+| [0016](decisions/0016-model-hosting-github-pages.md) | Host model files on GitHub Pages in a separate public repo for now; move to Cloudflare R2 later | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
