@@ -78,6 +78,42 @@ database enforces it, and the switch is atomic. Phones go back to the older mode
 ([model-output.md §4](../model-output.md)). They're stored per release, because each model's calibration differs.
 The defaults (0.7 / 0.4) come from ADR 0002; Step 6 sets real values from the calibration curve.
 
+## Trying a release on a laptop (until a CDN is chosen)
+
+With `DEBUG=True`, `register_model` accepts an `http://` base URL, so the whole chain runs locally:
+
+From the repo root, each in its own terminal where it says so:
+
+```bash
+# 1. export (ML venv)                                                       → ml/exports/2026.10.0/
+C:\tf\Scripts\python ml/scripts/export_tfjs.py ml/runs/<run>/saved_model
+
+# 2. register against a local URL and make it current (development database only)
+cd backend
+python manage.py register_model ../ml/exports/2026.10.0 \
+    --base-url http://localhost:8001/2026.10.0/ --min-app-version 0.1.0 \
+    --notes "Baseline: pipeline test only, not for farmers" --make-current
+
+# 3. serve ml/exports with CORS (own terminal, repo root)
+npx http-server@14.1.1 ml/exports -p 8001 --cors
+
+# 4. run the API (own terminal, backend/)
+python manage.py runserver 8000
+```
+
+`GET http://localhost:8000/api/v1/model/latest/` then returns the manifest, and the PWA dev server can download the
+model. Use `--cors`: the PWA runs on another port, so the browser blocks the download without it (Python's
+`http.server` doesn't send CORS headers; it's fine for `curl`, not for the app).
+
+`ml/exports/` and the database are git-ignored, so each developer registers on their own machine. Only make a
+baseline current in a development database, never on staging or production.
+
+## Release log
+
+| Version | Date | Where | What | Current? |
+|---------|------|-------|------|----------|
+| 2026.10.0 | 23 Oct 2026 | Development database only, `http://localhost:8001/2026.10.0/` | Baseline EfficientNet-B0 from run `real-photos-300`: 300 public photos (maize healthy, northern leaf blight, grey leaf spot, common rust; soybean healthy), random split, 84.4% on 45 test photos. 8.0 MB in 2 shards, `model.json` SHA-256 `0af3a9ed…91fa`. Loaded in TF.js 4.22.0 and labelled 15 sample photos correctly. Pipeline test only, not for farmers | Locally only |
+
 ## For the PWA
 
 1. Call `/model/latest/` when online. On 404 `no_model`, show "diagnosis not available yet".
