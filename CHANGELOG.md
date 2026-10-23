@@ -90,6 +90,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Fixed
 
+- Production settings refuse to start without a PostgreSQL `DATABASE_URL`. Staging's first deploy had it blank and
+  quietly ran on SQLite on Render's wiped-on-restart disk. `docs/backend/staging.md` now saves the Neon string
+  without showing it, stops commands that aren't pointed at Neon, and has a troubleshooting table.
 - `PATCH /me/`: two quick edits without `updated_at` could land in the same clock tick, and the second one was
   silently ignored. Edits without a timestamp now always apply.
 
