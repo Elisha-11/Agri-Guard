@@ -33,6 +33,9 @@ including real SMS through Africa's Talking, are in [docs/backend/auth.md](../do
 SQLite is the default. For PostgreSQL, run `docker compose up -d db` from the repo root, then set `DATABASE_URL` in
 `.env` (see `.env.example`). CI always runs the tests on PostgreSQL.
 
+A shared staging copy runs on Render; how it's deployed and how to run commands on it is in
+[docs/backend/staging.md](../docs/backend/staging.md).
+
 ## Check your work
 
 Run the same checks CI runs before you push:

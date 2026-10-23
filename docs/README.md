@@ -27,6 +27,7 @@ Changes to these need approval from all three owners (see [CONTRIBUTING](../CONT
 | [backend/feedback.md](backend/feedback.md) | `POST /feedback/`: who can give feedback, corrections, idempotency, queue order |
 | [backend/model-releases.md](backend/model-releases.md) | `GET /model/latest/`; releasing a model step by step with `register_model`; rollback |
 | [backend/diagnosis-sync.md](backend/diagnosis-sync.md) | `POST /diagnoses/sync/`: per-item results, validation, queue order, location consent, PWA checklist |
+| [backend/staging.md](backend/staging.md) | The staging server: Render + Neon setup, running commands on it, signing in through the SMS sandbox, limits |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
 | [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
@@ -56,6 +57,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0014](decisions/0014-baseline-model-and-export.md) | Baseline: EfficientNetB0, float16 TF.js export, augmentation outside the model, BatchNorm frozen | Proposed |
 | [0015](decisions/0015-code-owners-and-branch-protection.md) | Reviews enforced by CODEOWNERS (owner plus backup); `main` protected | Proposed |
 | [0016](decisions/0016-model-hosting-github-pages.md) | Host model files on GitHub Pages in a separate public repo for now; move to Cloudflare R2 later | Proposed |
+| [0017](decisions/0017-staging-on-render-and-neon.md) | Staging on Render's free plan with a Neon database and the Africa's Talking sandbox | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
