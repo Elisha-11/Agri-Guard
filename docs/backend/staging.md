@@ -42,11 +42,22 @@ Never put these secrets in the repo, an issue or a chat. They live in the Render
 
 ## Running management commands on staging
 
-The free plan has no shell, so run commands **from your laptop against the staging database**. Set `DATABASE_URL`
-in the terminal; it overrides `.env`. In PowerShell, from `backend/`:
+The free plan has no shell, so run commands **from your laptop against the staging database**. Keep the Neon
+string in a file outside the repo, typed without showing it on screen, so it never ends up in a commit, a
+screenshot or a chat. Once, in PowerShell:
 
 ```powershell
-$env:DATABASE_URL = "postgresql://...neon.tech/neondb?sslmode=require"   # the Neon string from step 1
+$s = Read-Host "Neon connection string" -AsSecureString
+[System.Net.NetworkCredential]::new("", $s).Password | Set-Content -NoNewline $HOME\.agriguard-staging-db
+Remove-Variable s
+```
+
+Then, from `backend/`, each time. `DATABASE_URL` in the terminal overrides `.env`. If it's empty, commands silently
+run against your **local** database instead, so check it first:
+
+```powershell
+$env:DATABASE_URL = Get-Content $HOME\.agriguard-staging-db
+if ($env:DATABASE_URL -notlike "*.neon.tech/*") { Remove-Item Env:DATABASE_URL; throw "Not the Neon database" }
 python manage.py createsuperuser          # your admin account: phone number + password
 python manage.py load_sample_advice       # placeholder advice so the PWA has something to show
 python manage.py register_model ..\ml\exports\2026.10.0 `
@@ -62,6 +73,15 @@ production like this.**
 `register_model` rewrites `manifest.json` in the export folder; restore it from the models repo afterwards if needed.
 On staging it's fine to make the baseline current (admin → Model releases → Make current), so the PWA can download
 it; never on production.
+
+## If something's wrong
+
+| Symptom | Cause and fix |
+|---------|---------------|
+| Every address returns `Not Found` with header `x-render-routing: no-server` | Render isn't running a service at that address: still deploying, failed, or the name has a suffix. Check the service page |
+| Deploy fails with `Set DATABASE_URL to PostgreSQL` | `DATABASE_URL` is blank in Render. Paste the Neon string in **Environment** |
+| A command says `You have N unapplied migration(s)` against Neon | Staging isn't using that database. Compare Render's `DATABASE_URL` with your file |
+| A connection string was shown on screen or pasted somewhere | Reset the password in Neon (**Roles → neondb_owner → Reset password**), then update Render and your file |
 
 ## Signing in on staging
 
