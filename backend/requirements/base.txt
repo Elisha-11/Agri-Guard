@@ -6,3 +6,4 @@ django-cors-headers>=4.4,<5
 python-decouple>=3.8,<4
 dj-database-url>=2.2,<3
 psycopg[binary]>=3.2,<4
+whitenoise>=6.7,<7   # serves the admin's CSS/JS from gunicorn (no separate web server on Render)

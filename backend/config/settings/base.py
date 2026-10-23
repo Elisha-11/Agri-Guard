@@ -41,6 +41,7 @@ AUTH_USER_MODEL = "accounts.Farmer"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -74,6 +75,8 @@ DATABASES = {
     "default": dj_database_url.parse(
         config("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=60,
+        # Neon suspends an idle database after a few minutes; check a kept connection before reusing it.
+        conn_health_checks=True,
     )
 }
 

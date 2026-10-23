@@ -1,0 +1,40 @@
+# Render blueprint for the staging API (docs/backend/staging.md, ADR 0017).
+# Staging is for the team and the PWA to test against. It is not for farmers.
+services:
+  - type: web
+    name: agri-guard-staging
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    # Built from the repo root: load_taxonomy reads ml/labels.json.
+    buildCommand: >-
+      pip install -r backend/requirements/prod.txt &&
+      cd backend && python manage.py collectstatic --noinput
+    # The free plan has no pre-deploy step, so migrations and the taxonomy (both idempotent) run at start.
+    startCommand: >-
+      cd backend &&
+      python manage.py migrate --noinput &&
+      python manage.py load_taxonomy &&
+      gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    healthCheckPath: /api/v1/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL # Neon connection string, set by hand in the Render dashboard
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS # the PWA's dev server; add the PWA's staging address when it has one
+        value: http://localhost:5173
+      - key: SMS_BACKEND
+        value: apps.accounts.sms.AfricasTalkingSmsBackend
+      - key: AFRICASTALKING_SANDBOX
+        value: "True"
+      - key: AFRICASTALKING_USERNAME
+        value: sandbox
+      - key: AFRICASTALKING_API_KEY # sandbox API key, set by hand in the Render dashboard
+        sync: false

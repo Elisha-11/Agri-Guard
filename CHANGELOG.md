@@ -10,6 +10,10 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- Staging server: `render.yaml` deploys the API to Render's free plan (Frankfurt) on every merge to `main`, with a
+  Neon PostgreSQL database and the Africa's Talking SMS sandbox. Migrations and `load_taxonomy` run at start. See
+  `docs/backend/staging.md` and ADR 0017.
+- WhiteNoise serves the admin's static files in production, compressed and cached with hashed names.
 - `docs/AgriGuard_Work_Plan.pdf`: the Weeks 4–13 work plan (snapshot of 21 Oct 2026), linked from the README
   and the docs index.
 - `.github/CODEOWNERS`: GitHub requests a review from each folder's owner and a backup. `docs/repo-settings.md`
@@ -91,6 +95,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Changed
 
+- Database connections kept between requests are checked before reuse (`conn_health_checks`), so a database that
+  went to sleep (Neon suspends idle ones) doesn't cause an error on the next request.
 - README: the team is now three owners. Agness owns ML & model delivery (`ml/`, `pwa/src/inference/`),
   Elisha owns API & infrastructure, Robert owns the PWA; PR approval is by code owner, and `docs/` needs all three. CONTRIBUTING, `ml/README.md`, `docs/README.md`,
   `model-output.md`, the contract description, ADR 0002 and the taxonomy sign-off table use the same owners.
