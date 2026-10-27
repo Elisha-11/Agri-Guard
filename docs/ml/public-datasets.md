@@ -24,7 +24,7 @@ another country's fields may miss differences in soil, light and varieties.
 | Our classes | Best dataset found | Photos from | Licence | Status |
 |-------------|--------------------|-------------|---------|--------|
 | `maize__grey_leaf_spot`, `maize__northern_leaf_blight`, `maize__streak_virus`, `maize__healthy` | Zambia Maize Leaf Dataset (ZMLD), [Zenodo 10.5281/zenodo.18430185](https://doi.org/10.5281/zenodo.18430185) | Zambia (Lusaka, Central, Eastern, Northern) | CC BY 4.0 | **Rejected as published** (see below); ask the author for the original photos |
-| `maize__lethal_necrosis`, `maize__streak_virus`, `maize__healthy` | NM-AIST / TARI Tanzania maize set: [Harvard Dataverse 10.7910/DVN/GDON8Q](https://doi.org/10.7910/DVN/GDON8Q), update described in [Data in Brief 2024](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10998077/); copies on [Zenodo](https://zenodo.org/records/15685236) and [Mendeley](https://data.mendeley.com/datasets/fkw49mz3xs/1) | Tanzania, farm phone photos | To check | Next to download and inspect |
+| `maize__lethal_necrosis`, `maize__streak_virus`, `maize__healthy` | NM-AIST / TARI Tanzania maize set: [Harvard Dataverse 10.7910/DVN/GDON8Q](https://doi.org/10.7910/DVN/GDON8Q), update described in [Data in Brief 2024](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10998077/); copies on [Zenodo](https://zenodo.org/records/15685236) and [Mendeley](https://data.mendeley.com/datasets/fkw49mz3xs/1) | Tanzania, farm phone photos | CC0 1.0 (per Dataverse) | **Accepted** (see below): 14,933 photos ready |
 | `maize__streak_virus`, `maize__healthy` | [KaraAgro AI Maize, Harvard Dataverse 10.7910/DVN/CXUMDS](https://doi.org/10.7910/DVN/CXUMDS) (Lacuna Fund) | Ghana | CC0 1.0 (per Dataverse) | Candidate |
 | `cassava__mosaic_disease`, `cassava__brown_streak`, `cassava__healthy` | Makerere AI Lab cassava leaf images ([Mak-CAD](https://air.ug/?page_id=3464), [Dataset Ninja](https://datasetninja.com/makerere-university-cassava)) | Uganda fields | To check | Candidate |
 | `groundnut__rosette`, `groundnut__early_leaf_spot`, `groundnut__late_leaf_spot`, `groundnut__healthy` | [Mendeley x6x5jkk873](https://data.mendeley.com/datasets/x6x5jkk873/2) (1,720 photos, has rosette); [Mendeley 22p2vcbxfk](https://doi.org/10.17632/22p2vcbxfk.3) (leaf spots, no rosette) | India fields | To check | Candidate; no African set found |
@@ -34,6 +34,34 @@ another country's fields may miss differences in soil, light and varieties.
 
 **Biggest gaps:** groundnut rosette from Africa, and anything African for soybean, cotton and common rust. Ask ZARI
 (at the M1 agronomist sign-off) and ICRISAT Malawi whether they hold labelled photos.
+
+## Tanzania maize set: accepted
+
+Checked 27 Oct 2026. Four files from Dataverse version 6 (`MLN.zip`, `MSV_1.zip`, `MSV_2.zip`, `HEATHLY.zip`, 4.2 GB),
+each matching its published MD5. Field close-ups of single leaves from smartphones, nothing drawn on the images;
+labels come from the zip name (the COCO files inside hold no annotations).
+
+| Folder | Class id | Photos kept | Set aside as blurry |
+|--------|----------|------------:|--------------------:|
+| `HEALTHY` | `maize__healthy` | 4,770 | 347 |
+| `MLN` | `maize__lethal_necrosis` | 3,913 | 67 |
+| `MSV` | `maize__streak_virus` | 6,250 | 2 |
+| **Total** | | **14,933** | **416** |
+
+- **Where:** `ml/data/raw/public/tz-maize/images/`, with `mapping.csv` (the `_blurry` folder maps to `skip`) and
+  `report.json`. The training loader reads it as is: `--images ml/data/raw/public/tz-maize/images --mapping
+  ml/data/raw/public/tz-maize/mapping.csv`.
+- **Fewer than the datasheet:** 15,350 images in the files against 17,277 in the datasheet. One healthy image is
+  truncated and unreadable.
+- **Blur:** variance of a Laplacian on the image resized to 224 px wide; below 40 is set aside (chosen by eye: 31
+  was visibly blurred, 62 sharp). Blurry photos are moved, never deleted.
+- **Duplicates:** no byte-identical files. Perceptual hashes (64- and 256-bit dHash) matched *different* photos,
+  because close-ups of striped leaves with the midrib across the middle look alike to them; don't use them to
+  remove duplicates from leaf close-ups.
+- **Limits:** all photos are close-ups of the leaf surface, while farmers will often photograph a whole leaf, so
+  the model may not transfer well; and lethal necrosis and streak virus can look alike up close. Ask the
+  agronomist to spot-check about 50 photos per class. No farmer or field information, so the split is random
+  (training prints a warning).
 
 ## Zambia Maize Leaf Dataset: why the Zenodo copy is rejected
 
