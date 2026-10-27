@@ -10,6 +10,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- `docs/crop-priorities.md` and ADR 0018: finish the five current crops first, then add common beans; the crop
+  ranking uses ZamStats' 2024 Integrated Agricultural Survey. Two new questions for the agronomist in
+  `docs/class-taxonomy.md`.
 - `docs/ml/public-datasets.md`: open image datasets for each of the 19 classes with licence status, the checks a
   public dataset must pass before training, and why the Zenodo copy of the Zambia Maize Leaf Dataset is rejected.
 - Staging server: `render.yaml` deploys the API to Render's free plan (Frankfurt) on every merge to `main`, with a

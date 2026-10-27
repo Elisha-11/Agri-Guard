@@ -50,6 +50,10 @@ disease of that crop in Zambia. Every **D** row needs agronomist confirmation.
 4. Are pests with leaf symptoms (e.g. Fall Armyworm damage) in scope, or disease only?
 5. For each class, what are the **severity stages** (early / mid / advanced) and how are they recognised on a leaf?
    This feeds the severity band in [`model-output.md`](model-output.md).
+6. After the five crops, we plan to add **common beans**, then sunflower or tomato ([ADR 0018](decisions/0018-finish-five-crops-then-add-beans.md),
+   evidence in [crop-priorities.md](crop-priorities.md)). Do you agree? Which bean, sunflower and tomato diseases
+   matter most in Zambia?
+7. Does ZARI hold labelled leaf photos we could use, especially groundnut rosette, beans or tomato?
 
 ## Sign-off
 
