@@ -32,6 +32,7 @@ Changes to these need approval from all three owners (see [CONTRIBUTING](../CONT
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
 | [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
 | [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
+| [ml/public-datasets.md](ml/public-datasets.md) | Open image datasets per class, licence status, rules before public photos reach training, rejected sets |
 | [repo-settings.md](repo-settings.md) | Who reviews which folder (CODEOWNERS), and the GitHub branch protection settings to tick |
 
 ## Decisions

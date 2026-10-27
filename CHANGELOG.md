@@ -10,6 +10,8 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- `docs/ml/public-datasets.md`: open image datasets for each of the 19 classes with licence status, the checks a
+  public dataset must pass before training, and why the Zenodo copy of the Zambia Maize Leaf Dataset is rejected.
 - Staging server: `render.yaml` deploys the API to Render's free plan (Frankfurt) on every merge to `main`, with a
   Neon PostgreSQL database and the Africa's Talking SMS sandbox. Migrations and `load_taxonomy` run at start. See
   `docs/backend/staging.md` and ADR 0017.
