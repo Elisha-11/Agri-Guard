@@ -11,12 +11,14 @@ another country's fields may miss differences in soil, light and varieties.
 
 1. **Licence checked on the dataset's own page** (not the paper's licence) and recorded in the table below. Only
    licences that allow reuse (CC0, CC BY, CC BY-SA) are used. Credit the authors in the model's release notes.
-2. **Download from the original record** into `ml/data/raw/public/<short-name>/` (git-ignored; tracked with DVC
-   like field batches), and check the file checksum against the record.
+2. **Download from the original record** into `<data root>/raw/public/<short-name>/` and check the file checksum
+   against the record. The data root is `ml/data/` (git-ignored; tracked with DVC like field batches), or a folder
+   outside OneDrive or any synced folder when the repo lives in one: syncing gigabytes of images can exhaust memory
+   and bandwidth. Elisha's machine uses `C:gri-guard-data`.
 3. **Look at a sample of photos before mapping.** Reject a dataset if labels, boxes or text are drawn on the images,
    if the labels are clearly wrong, or if it is a copy of another dataset under a new name.
 4. **Map folders with a mapping CSV** as in [training.md](training.md#input). Name the mapping
-   `ml/data/raw/public/<short-name>/mapping.csv`.
+   `<data root>/raw/public/<short-name>/mapping.csv`.
 5. Keep public photos out of the **test** split once field photos exist, so the test score stays a farm score.
 
 ## Status by class
@@ -48,9 +50,10 @@ labels come from the zip name (the COCO files inside hold no annotations).
 | `MSV` | `maize__streak_virus` | 6,250 | 2 |
 | **Total** | | **14,933** | **416** |
 
-- **Where:** `ml/data/raw/public/tz-maize/images/`, with `mapping.csv` (the `_blurry` folder maps to `skip`) and
-  `report.json`. The training loader reads it as is: `--images ml/data/raw/public/tz-maize/images --mapping
-  ml/data/raw/public/tz-maize/mapping.csv`.
+- **Where:** `<data root>/raw/public/tz-maize/images/` (on Elisha's machine `C:gri-guard-data`), with
+  `mapping.csv` (the `_blurry` folder maps to `skip`), `report.json` and the original zips. The training loader
+  reads it as is: `--images <data root>/raw/public/tz-maize/images --mapping
+  <data root>/raw/public/tz-maize/mapping.csv`.
 - **Fewer than the datasheet:** 15,350 images in the files against 17,277 in the datasheet. One healthy image is
   truncated and unreadable.
 - **Blur:** variance of a Laplacian on the image resized to 224 px wide; below 40 is set aside (chosen by eye: 31
