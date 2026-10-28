@@ -30,7 +30,7 @@ Changes to these need approval from all three owners (see [CONTRIBUTING](../CONT
 | [backend/staging.md](backend/staging.md) | The staging server: Render + Neon setup, running commands on it, signing in through the SMS sandbox, limits |
 | [../ml/README.md](../ml/README.md) | Dataset layout, photo metadata, training and conversion |
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
-| [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
+| [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, trying a model on photos with `predict.py`, Colab and Windows setup |
 | [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
 | [repo-settings.md](repo-settings.md) | Who reviews which folder (CODEOWNERS), and the GitHub branch protection settings to tick |
 

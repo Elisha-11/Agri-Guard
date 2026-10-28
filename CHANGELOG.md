@@ -10,6 +10,9 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- `ml/scripts/predict.py`: try a trained model on any photos. Prints the top 3 classes and the status the app would
+  show for each; `--expect` counts correct answers and confident mistakes, `--csv` saves the results. See
+  `docs/ml/training.md`.
 - Staging server: `render.yaml` deploys the API to Render's free plan (Frankfurt) on every merge to `main`, with a
   Neon PostgreSQL database and the Africa's Talking SMS sandbox. Migrations and `load_taxonomy` run at start. See
   `docs/backend/staging.md` and ADR 0017.

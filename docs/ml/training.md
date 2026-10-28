@@ -91,6 +91,29 @@ checks the folder the way `manage.py register_model` will, plus a little more:
 
 Any problem prints a list and exits 1.
 
+## Trying a model on photos
+
+`ml/scripts/predict.py` runs a run's `saved_model` on any photos and prints, for each one, the top 3 classes and the
+status the PWA would show (`confident` ≥ 0.70, `uncertain` ≥ 0.40, otherwise `consult`; see
+[model-output.md](../model-output.md) §4). Photos are resized the same way as the test split.
+
+```bash
+python ml/scripts/predict.py ml/runs/<run> photo.jpg
+python ml/scripts/predict.py ml/runs/<run> <folder> --expect maize__lethal_necrosis --csv results.csv
+```
+
+With `--expect` (every photo shows that class) it counts the correct answers and the **wrong answers shown as
+`confident`**, the mistakes a farmer would act on. `--csv` writes one row per photo. Needs the TensorFlow setup
+below (on Windows, `C:\tf\Scripts\python`).
+
+Use it to look at photos the model has never seen, especially farm photos from another source. It's a spot check:
+the scores to report are the test-split ones in `metrics.json`.
+
+**Example (27 Oct 2026).** `real-photos-300` (300 PlantVillage photos: four maize classes and soybean healthy, 84%
+test accuracy on PlantVillage) on 10 Tanzanian farm photos of maize lethal necrosis, a class it never trained on:
+0 correct, 7 answered `maize__healthy`, and 3 of those shown as `confident`. A model picks one of the classes it
+knows; field photos of every class, and calibrated thresholds (Step 6), are what stop "healthy" answers like these.
+
 ## Registering the baseline
 
 Baseline runs default to `--model-version 2026.10.0`, a real version so `register_model` accepts it unchanged. Say

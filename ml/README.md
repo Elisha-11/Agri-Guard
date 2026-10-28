@@ -9,7 +9,10 @@ ml/
 ├── scripts/
 │   ├── build_labels.py  regenerate labels.json after a taxonomy change
 │   ├── check_batch.py   check a field batch's photos and metadata.csv before intake
-│   └── split.py         assign farmers to train / val / test and list every photo's split
+│   ├── split.py         assign farmers to train / val / test and list every photo's split
+│   ├── train_baseline.py  train EfficientNetB0 (dataset.py holds its TensorFlow-free logic)
+│   ├── export_tfjs.py   convert a trained model to TF.js and check it
+│   └── predict.py       try a trained model on photos and see what the app would say
 ├── splits/
 │   └── farmers.csv      each farmer's split (written by split.py; never edit by hand)
 ├── templates/
@@ -44,6 +47,7 @@ The index order in `labels.json` is the order of the model's output layer and is
 
 - Test the pipeline first (CPU, a few minutes, no dataset needed): `python ml/scripts/train_baseline.py --smoke`.
 - Train: `python ml/scripts/train_baseline.py --images <dir> --mapping <csv> --metadata <csv>` on a GPU (Colab).
+- Try it on photos it hasn't seen: `python ml/scripts/predict.py <run> <photos> --expect <class_id>`.
 - Export for the PWA: `python ml/scripts/export_tfjs.py <run>/saved_model`, then `manage.py register_model`.
 - Setup (Colab, Windows), flags and outputs: [docs/ml/training.md](../docs/ml/training.md). Runs and exports
   never go in git.
