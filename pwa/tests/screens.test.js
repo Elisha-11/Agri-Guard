@@ -19,6 +19,16 @@ import { esc, formatCheckDate } from "../src/ui.js";
 import { THRESHOLDS } from "../src/image-quality.js";
 import { session, addHistoryEntry, state } from "../src/state.js";
 
+// Node has no localStorage; src/advisory.js keeps the advisory bundle there.
+if (typeof globalThis.localStorage === "undefined") {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => store.set(key, String(value)),
+    removeItem: (key) => store.delete(key),
+  };
+}
+
 import * as capture from "../src/screens/capture.js";
 import * as processing from "../src/screens/processing.js";
 import * as result from "../src/screens/result.js";
@@ -137,15 +147,79 @@ describe("screens render", () => {
       model_version: "0.0.0-untrained",
     };
 
+    // No advisory bundle downloaded: no treatment text at all, only the
+    // "not checked by an expert yet" message.
+    localStorage.removeItem("agriguard.advisory.en");
     const resultHtml = result.render();
     expect(resultHtml).toContain("Maize Grey Leaf Spot");
     expect(resultHtml).toContain("91% sure");
     expect(resultHtml).toContain("Moderate");
-    expect(resultHtml).toContain("Treat now");
+    expect(resultHtml).toContain(t("advisory.no_advice"));
 
     const adviceHtml = advice.render();
     expect(adviceHtml).toContain("Maize Grey Leaf Spot");
-    expect(adviceHtml).toContain("Safety");
+    expect(adviceHtml).toContain(t("advisory.no_advice"));
+    expect(adviceHtml).not.toContain("Safety");
+  });
+
+  it("shows published advice from the advisory bundle, safety warning first", () => {
+    const previous = session.prediction;
+    session.prediction = {
+      class_id: "maize__grey_leaf_spot",
+      confidence: 0.91,
+      status: "confident",
+      severity: "unknown",
+      top_k: [{ class_id: "maize__grey_leaf_spot", confidence: 0.91 }],
+      model_version: "2026.10.0",
+    };
+    // Test fixture in the bundle's shape; the strings are markers, not advice.
+    const section = (name) => ({
+      title: `${name} title`,
+      steps: [`${name} step 1`, `${name} step 2`],
+    });
+    localStorage.setItem(
+      "agriguard.advisory.en",
+      JSON.stringify({
+        etag: '"test"',
+        bundle: {
+          bundle_version: "test",
+          lang: "en",
+          diseases: [
+            {
+              class_id: "maize__grey_leaf_spot",
+              lang: "en",
+              name: "Fixture Disease Name",
+              local_name: null,
+              treatment: section("TREATMENT"),
+              prevention: section("PREVENTION"),
+              follow_up: section("FOLLOWUP"),
+              safety_warning: "FIXTURE SAFETY WARNING",
+              reviewed_by: "Fixture Reviewer",
+              reviewed_at: "2026-11-01",
+            },
+          ],
+          ui: {},
+        },
+      }),
+    );
+
+    try {
+      const resultHtml = result.render();
+      expect(resultHtml).toContain("Fixture Disease Name");
+      expect(resultHtml).toContain("TREATMENT title");
+      expect(resultHtml).toContain("TREATMENT step 1");
+      expect(resultHtml).not.toContain(t("advisory.no_advice"));
+
+      const adviceHtml = advice.render();
+      expect(adviceHtml).toContain("FOLLOWUP step 2");
+      expect(adviceHtml).toContain("Fixture Reviewer");
+      expect(adviceHtml.indexOf("FIXTURE SAFETY WARNING")).toBeLessThan(
+        adviceHtml.indexOf("TREATMENT step 1"),
+      );
+    } finally {
+      localStorage.removeItem("agriguard.advisory.en");
+      session.prediction = previous;
+    }
   });
 
   it("keeps the demonstration-mode notice on every screen showing a prediction", () => {

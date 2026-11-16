@@ -336,6 +336,26 @@ body {
   pointer-events: none;
 }
 
+.ag-capture__live {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.ag-capture__live[data-status="confident"] {
+  background: rgba(15, 97, 59, 0.92);
+}
+
 .ag-capture__hint {
   position: absolute;
   right: 12px;
@@ -913,6 +933,28 @@ body {
   font-size: 16px;
   line-height: 20px;
   color: var(--ag-muted-body);
+}
+
+.ag-advice__steps {
+  margin: 8px 0 0;
+  padding-left: 22px;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--ag-muted-body);
+}
+
+.ag-advice__steps li + li {
+  margin-top: 6px;
+}
+
+.ag-advice__reviewed {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ag-muted-body);
+}
+
+.ag-section--static {
+  cursor: default;
 }
 
 .ag-advice__card--safety {

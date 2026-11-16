@@ -1,45 +1,59 @@
 /**
- * AgriGuard AI — temporary inference stub.
+ * AgriGuard AI: on-device diagnosis with the published TensorFlow.js model.
  *
- * This module gives the PWA team a stable diagnose(image) interface while
- * Agness develops the real model pipeline. It DOES NOT inspect image pixels
- * and MUST NOT be presented to farmers as a real diagnosis.
+ * Contract: docs/model-output.md. The model takes raw RGB pixels as float32 in
+ * [0, 255], shape [1, 224, 224, 3] (EfficientNet preprocessing is inside the
+ * graph), and returns softmax probabilities in labels.json order.
  *
- * Contract reference: docs/model-output.md. The real implementation will
- * replace only the mock-score section with TensorFlow.js inference.
+ * The photo is resized to the model's input by stretching the whole frame,
+ * without cropping, which is how ml/scripts/train_baseline.py prepares its
+ * validation and test photos.
  */
 
-import labels from "../../../ml/labels.json";
+import * as tf from "@tensorflow/tfjs-core";
 import { buildPrediction } from "../lib/prediction.js";
+import { loadModel } from "./model.js";
 
-/** Lets the PWA identify that this module is still returning mock results. */
-export const INFERENCE_MODE = "mock";
+/** "model" now that real inference runs; the screens no longer say "simulated". */
+export const INFERENCE_MODE = "model";
 
 /**
- * Return a deterministic, contract-shaped mock prediction.
- *
- * @param {File|Blob|HTMLImageElement|ImageBitmap} image selected/captured image
- * @returns {Promise<object>} Prediction matching docs/model-output.md
+ * @param {File|Blob} image captured or uploaded photo
+ * @returns {Promise<object>} Prediction matching docs/model-output.md section 3
  */
 export async function diagnose(image) {
   if (!image) {
     throw new Error("An image is required for diagnosis.");
   }
 
-  if (!Array.isArray(labels.classes) || labels.classes.length < 3) {
-    throw new Error("ml/labels.json must contain at least three classes.");
+  const startedAt = performance.now();
+  const { model, labels, manifest } = await loadModel();
+  const { width, height } = labels.input;
+
+  // Decode straight to the model size: a 12-megapixel camera photo never has
+  // to sit in memory at full resolution on a 1-2 GB phone.
+  const bitmap = await createImageBitmap(image, {
+    resizeWidth: width,
+    resizeHeight: height,
+    resizeQuality: "high",
+  });
+
+  let output;
+  try {
+    output = tf.tidy(() => {
+      const pixels = tf.cast(tf.browser.fromPixels(bitmap, 3), "float32");
+      // Function form: tfjs-core ships without the chained `.expandDims()` methods.
+      return model.predict(tf.expandDims(pixels, 0));
+    });
+  } finally {
+    bitmap.close?.();
   }
 
-  // DEMO ONLY: fixed example matching the model-output illustration.
-  // Index 2 is maize__grey_leaf_spot in the current provisional labels.json.
-  // No image analysis, TensorFlow model, or disease detection happens here.
-  const remainingClasses = labels.classes.length - 3;
-  const remainingScore = remainingClasses > 0 ? 0.01 / remainingClasses : 0;
-  const probabilities = new Array(labels.classes.length).fill(remainingScore);
+  const probabilities = await output.data();
+  output.dispose();
 
-  probabilities[2] = 0.91;
-  probabilities[1] = 0.06;
-  probabilities[3] = 0.02;
-
-  return buildPrediction(probabilities, labels, { inferenceMs: 0 });
+  return buildPrediction(probabilities, labels, {
+    thresholds: manifest.thresholds,
+    inferenceMs: performance.now() - startedAt,
+  });
 }

@@ -1,7 +1,7 @@
 {
   "app.tagline": "Photograph a leaf to check for disease.",
 
-  "demo.notice": "Demonstration mode: this prediction is simulated, not a real diagnosis.",
+  "demo.notice": "Early test model: it has learned maize and soybean from a few hundred photos. Check with an extension officer before you treat.",
 
   "action.back": "Go back",
   "action.listen": "Listen",
@@ -16,6 +16,8 @@
   "capture.button": "Take photo",
   "capture.upload": "Upload from gallery",
   "capture.noCamera": "Camera not available. Tap the round button to use your phone camera.",
+  "capture.liveGuess": "Looks like: {name} · {percent}%. Take a photo to check.",
+  "capture.liveSearching": "Hold one leaf close, in daylight.",
 
   "processing.status": "Checking your plant...",
 
@@ -31,17 +33,13 @@
   "severity.unknown": "Not rated yet",
   "severity.aria": "Severity: {level}",
 
-  "advice.treat.title": "Treat now",
-  "advice.treat.body": "Treatment steps from the approved advisory (pending agronomist sign-off)",
-  "advice.treat.full": "Advice from the approved advisory, pending agronomist sign-off.",
-  "advice.prevent.title": "Prevent",
-  "advice.prevent.body": "Use clean farm tools.",
-  "advice.prevent.full": "Advice from the approved advisory, pending agronomist sign-off.",
-  "advice.check.title": "Check again in 7 days",
-  "advice.check.body": "Take another leaf photo.",
-  "advice.check.full": "Advice from the approved advisory, pending agronomist sign-off.",
   "advice.safety.title": "Safety",
-  "advice.safety.body": "Read the product label and wear protective gear. Pending agronomist sign-off.",
+  "advice.reviewedBy": "Checked by {name}, {date}",
+
+  "advisory.no_advice": "We recognised this problem, but advice for it has not been checked by an expert yet. Please show this plant to an extension officer.",
+  "advisory.uncertain": "We are not sure. Please take another photo.",
+  "advisory.consult": "Please show this plant to an extension officer.",
+  "advisory.rejected": "This photo is too dark, blurry or far away. Please take another one in daylight, close to the leaf.",
 
   "uncertain.heading": "We are not sure.",
   "uncertain.subheading": "Please take another photo.",
@@ -78,6 +76,9 @@
   "settings.signOut": "Sign out",
   "settings.version": "AgriGuard AI · Version {version}",
   "settings.api": "API:",
+  "settings.model": "Model:",
+  "settings.modelAppTooOld": "update the app to get model {version}",
+  "settings.modelRejected": "model {version} failed its checks; keeping this one",
   "settings.apiUnreachable": "not reachable",
 
   "language.title": "Choose your language",

@@ -6,6 +6,9 @@
  *
  * Each advice card opens screen 4 (Advice) for the full text; the chevron
  * inside the card collapses it in place without leaving the screen.
+ *
+ * Card text comes only from published, agronomist-reviewed advice in the
+ * advisory bundle (src/advisory.js); without it the screen says so.
  */
 
 import { icons, photos } from "../icons.js";
@@ -13,7 +16,8 @@ import { t } from "../i18n.js";
 import { esc, demoNote, backButton, severityBar, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
 import { session, findHistoryEntry } from "../state.js";
-import { displayName, severityDisplay, confidencePercent, adviceSections } from "../disease.js";
+import { displayName, severityDisplay, confidencePercent } from "../disease.js";
+import { adviceFor, adviceCards, advisoryMessage } from "../advisory.js";
 import { speak, stopSpeaking } from "../speech.js";
 
 const SECTION_ICONS = { treat: icons.droplet, prevent: icons.shield, check: icons.calendar };
@@ -28,6 +32,7 @@ export function resolveSubject(params = {}) {
     if (!entry) return null;
 
     return {
+      classId: entry.classId,
       name: entry.name ?? displayName(entry.classId),
       confidence: entry.confidence,
       severity: entry.severity,
@@ -38,6 +43,7 @@ export function resolveSubject(params = {}) {
 
   if (session.prediction) {
     return {
+      classId: session.prediction.class_id,
       name: displayName(session.prediction.class_id),
       confidence: session.prediction.confidence,
       severity: session.prediction.severity,
@@ -49,12 +55,32 @@ export function resolveSubject(params = {}) {
   return null;
 }
 
-export function render(params = {}) {
-  const subject = resolveSubject(params);
-  if (!subject) return "";
+/** Published advice for the subject, its cards, and the name to show. */
+export function adviceView(subject) {
+  const advice = adviceFor(subject.classId);
+  return {
+    advice,
+    cards: adviceCards(advice),
+    name: advice?.local_name || advice?.name || subject.name,
+  };
+}
 
-  const severity = severityDisplay(subject.severity);
-  const sections = adviceSections()
+/** Collapsed card text: the first step, or the "not checked yet" message. */
+function cardsHtml(cards) {
+  if (!cards.length) {
+    return `
+      <div class="ag-section ag-section--static" data-section="none">
+        <span class="ag-section__icon">
+          <img src="${icons.warning}" alt="" width="24" height="24" />
+        </span>
+        <span class="ag-section__text">
+          <span class="ag-section__body">${esc(advisoryMessage("no_advice"))}</span>
+        </span>
+      </div>
+    `;
+  }
+
+  return cards
     .map(
       (section) => `
         <div
@@ -69,7 +95,7 @@ export function render(params = {}) {
           </span>
           <span class="ag-section__text">
             <span class="ag-section__title">${esc(section.title)}</span>
-            <span class="ag-section__body">${esc(section.body)}</span>
+            <span class="ag-section__body">${esc(section.steps[0])}</span>
           </span>
           <button
             type="button"
@@ -83,6 +109,14 @@ export function render(params = {}) {
       `,
     )
     .join("");
+}
+
+export function render(params = {}) {
+  const subject = resolveSubject(params);
+  if (!subject) return "";
+
+  const severity = severityDisplay(subject.severity);
+  const view = adviceView(subject);
 
   return `
     <section class="ag-screen">
@@ -95,14 +129,14 @@ export function render(params = {}) {
         </div>
 
         <div class="ag-result__body">
-          <h1 class="ag-result__name">${esc(subject.name)}</h1>
+          <h1 class="ag-result__name">${esc(view.name)}</h1>
           <p class="ag-result__sure">
             ${esc(t("result.sure", { percent: confidencePercent(subject.confidence) }))}
           </p>
 
           ${severityBar(severity)}
 
-          <div class="ag-sections">${sections}</div>
+          <div class="ag-sections">${cardsHtml(view.cards)}</div>
         </div>
       </div>
 
@@ -126,7 +160,7 @@ export function mount(root, params = {}) {
 
   bindBack(root, () => back(subject.fromHistory ? "/history" : "/capture"));
 
-  root.querySelectorAll(".ag-section").forEach((card) => {
+  root.querySelectorAll(".ag-section:not(.ag-section--static)").forEach((card) => {
     card.addEventListener("click", (event) => {
       const toggle = event.target.closest("[data-toggle]");
 
@@ -153,10 +187,13 @@ export function mount(root, params = {}) {
 
   const listen = root.querySelector("#ag-listen");
   const onListen = () => {
+    const view = adviceView(subject);
     const spoken = speak([
-      subject.name,
+      view.name,
       t("result.sure", { percent: confidencePercent(subject.confidence) }),
-      ...adviceSections().flatMap((section) => [section.title, section.body]),
+      ...(view.cards.length
+        ? view.cards.flatMap((section) => [section.title, section.steps[0]])
+        : [advisoryMessage("no_advice")]),
     ]);
 
     if (!spoken) listen.querySelector("span").textContent = t("action.listenUnavailable");

@@ -1,12 +1,15 @@
 /**
  * Screen 4 — Advice (Figma node 71:24).
  *
- * The expanded form of the three result cards, plus the safety panel. Reached
- * by tapping a card on screen 3; `params.section` scrolls that card into view.
+ * The expanded form of the result cards. Reached by tapping a card on
+ * screen 3; `params.section` scrolls that card into view.
  *
- * The body copy is the placeholder wording from the design. Real treatment
- * instructions are pending agronomist sign-off (docs/class-taxonomy.md), and
- * this screen must not invent them.
+ * Everything shown comes from published advice in the advisory bundle
+ * (src/advisory.js), which the backend only publishes once an agronomist is
+ * recorded as reviewer. The safety warning, when there is one, comes before
+ * the treatment steps (docs/backend/advisory-bundle.md). Without published
+ * advice the screen shows the bundle's "not checked by an expert yet" message
+ * and no treatment at all.
  */
 
 import { icons } from "../icons.js";
@@ -14,39 +17,60 @@ import { t } from "../i18n.js";
 import { esc, demoNote, backButton, severityBar, bindBack } from "../ui.js";
 import { back } from "../router.js";
 import { severityDisplay } from "../disease.js";
+import { advisoryMessage } from "../advisory.js";
 import { speak, stopSpeaking } from "../speech.js";
-import { resolveSubject } from "./result.js";
+import { resolveSubject, adviceView } from "./result.js";
 
-const CARDS = [
-  { key: "treat", icon: icons.droplet28, title: "advice.treat.title", body: "advice.treat.full" },
-  {
-    key: "prevent",
-    icon: icons.shield28,
-    title: "advice.prevent.title",
-    body: "advice.prevent.full",
-  },
-  { key: "check", icon: icons.calendar28, title: "advice.check.title", body: "advice.check.full" },
-];
+const CARD_ICONS = { treat: icons.droplet28, prevent: icons.shield28, check: icons.calendar28 };
+
+function card({ key, icon, title, steps, text, extraClass = "" }) {
+  const body = steps
+    ? `<ol class="ag-advice__steps">${steps.map((step) => `<li>${esc(step)}</li>`).join("")}</ol>`
+    : `<p class="ag-advice__text">${esc(text)}</p>`;
+
+  return `
+    <article class="ag-advice__card ${extraClass}" data-card="${esc(key)}">
+      <div class="ag-advice__head">
+        <span class="ag-advice__icon">
+          <img src="${icon}" alt="" width="28" height="28" />
+        </span>
+        ${title ? `<h2 class="ag-advice__title">${esc(title)}</h2>` : ""}
+      </div>
+      ${body}
+    </article>
+  `;
+}
 
 export function render(params = {}) {
   const subject = resolveSubject(params);
   if (!subject) return "";
 
   const severity = severityDisplay(subject.severity);
+  const { advice, cards, name } = adviceView(subject);
 
-  const cards = CARDS.map(
-    (card) => `
-      <article class="ag-advice__card" data-card="${esc(card.key)}">
-        <div class="ag-advice__head">
-          <span class="ag-advice__icon">
-            <img src="${card.icon}" alt="" width="28" height="28" />
-          </span>
-          <h2 class="ag-advice__title">${esc(t(card.title))}</h2>
-        </div>
-        <p class="ag-advice__text">${esc(t(card.body))}</p>
-      </article>
-    `,
-  ).join("");
+  let content;
+  if (!cards.length) {
+    content = card({ key: "none", icon: icons.warning, text: advisoryMessage("no_advice") });
+  } else {
+    const safety = advice.safety_warning
+      ? card({
+          key: "safety",
+          icon: icons.warning,
+          title: t("advice.safety.title"),
+          text: advice.safety_warning,
+          extraClass: "ag-advice__card--safety",
+        })
+      : "";
+    const sections = cards
+      .map((section) => card({ ...section, icon: CARD_ICONS[section.key] }))
+      .join("");
+    const reviewed = advice.reviewed_by
+      ? `<p class="ag-advice__reviewed">${esc(
+          t("advice.reviewedBy", { name: advice.reviewed_by, date: advice.reviewed_at ?? "" }),
+        )}</p>`
+      : "";
+    content = safety + sections + reviewed;
+  }
 
   return `
     <section class="ag-screen">
@@ -59,20 +83,10 @@ export function render(params = {}) {
         </div>
 
         <div class="ag-advice__body">
-          <h1 class="ag-advice__name">${esc(subject.name)}</h1>
+          <h1 class="ag-advice__name">${esc(name)}</h1>
           ${severityBar(severity)}
 
-          ${cards}
-
-          <article class="ag-advice__card ag-advice__card--safety">
-            <div class="ag-advice__head">
-              <span class="ag-advice__icon">
-                <img src="${icons.warning}" alt="" width="24" height="24" />
-              </span>
-              <h2 class="ag-advice__title">${esc(t("advice.safety.title"))}</h2>
-            </div>
-            <p class="ag-advice__text">${esc(t("advice.safety.body"))}</p>
-          </article>
+          ${content}
         </div>
       </div>
 
@@ -97,21 +111,23 @@ export function mount(root, params = {}) {
   bindBack(root, () => back(subject.fromHistory ? "/history" : "/capture"));
 
   if (params.section) {
-    const card = root.querySelector(`[data-card="${CSS.escape(params.section)}"]`);
-    if (card) card.scrollIntoView({ block: "center" });
+    const target = root.querySelector(`[data-card="${CSS.escape(params.section)}"]`);
+    if (target) target.scrollIntoView({ block: "center" });
   }
 
   const listen = root.querySelector("#ag-listen");
 
   listen.addEventListener("click", () => {
-    const spoken = speak([
-      subject.name,
-      ...CARDS.flatMap((card) => [t(card.title), t(card.body)]),
-      t("advice.safety.title"),
-      t("advice.safety.body"),
-    ]);
+    const { advice, cards, name } = adviceView(subject);
+    const lines = cards.length
+      ? [
+          name,
+          ...(advice.safety_warning ? [t("advice.safety.title"), advice.safety_warning] : []),
+          ...cards.flatMap((section) => [section.title, ...section.steps]),
+        ]
+      : [name, advisoryMessage("no_advice")];
 
-    if (!spoken) listen.querySelector("span").textContent = t("action.listenUnavailable");
+    if (!speak(lines)) listen.querySelector("span").textContent = t("action.listenUnavailable");
   });
 
   return () => stopSpeaking();

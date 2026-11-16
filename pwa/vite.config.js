@@ -20,6 +20,10 @@ export default defineConfig({
         // fetched at runtime by src/i18n.js and would otherwise be missing
         // offline. The manifest and icons come from public/.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,json}"],
+        // The disease model (~8 MB, public/models/) is cached on first use
+        // instead (runtimeCaching below): precaching would hold up the
+        // install, and only its .json files would match the pattern above.
+        globIgnores: ["models/**"],
 
         // Any navigation falls back to the shell: the app is a hash router,
         // so every screen lives at index.html.
@@ -39,6 +43,20 @@ export default defineConfig({
             // See docs/offline-sync.md for the queued-write design.
             urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
             handler: "NetworkOnly",
+          },
+          {
+            // Model files: a release folder is never changed once published,
+            // so a cached copy is always correct. current.json names the
+            // release and must stay fresh, so it is excluded here.
+            urlPattern: ({ url }) =>
+              /\/models\/\d{4}\.\d+\.\d+\//.test(url.pathname) ||
+              url.hostname === "elisha-11.github.io",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "agriguard-models",
+              expiration: { maxEntries: 20 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
           },
         ],
       },

@@ -4,9 +4,10 @@
  * Wires the twelve screens from the AgriGuard Screens Figma file into the
  * hash router, with a guard that keeps a signed-out user on the auth screens.
  *
- * Every prediction in this build comes from the mock stub in
- * inference/diagnose.js. The demonstration-mode notice on the result screens
- * must stay until real inference ships.
+ * Predictions come from the on-device model (inference/diagnose.js) and
+ * treatment advice from the published advisory bundle (advisory.js). The
+ * "early test model" notice stays on result screens while the model is the
+ * baseline release.
  */
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -16,6 +17,8 @@ import { defineRoutes, setGuard, start } from "./router.js";
 import { initI18n } from "./i18n.js";
 import { state } from "./state.js";
 import { registerServiceWorker, mountConnectionIndicator } from "./offline.js";
+import { startAdvisorySync } from "./advisory.js";
+import { startModelUpdates } from "./inference/model.js";
 
 import * as capture from "./screens/capture.js";
 import * as processing from "./screens/processing.js";
@@ -60,4 +63,6 @@ registerServiceWorker();
 initI18n(state.language).then(() => {
   start(document.querySelector("#app"));
   mountConnectionIndicator();
+  startAdvisorySync();
+  startModelUpdates();
 });

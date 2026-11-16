@@ -1,0 +1,3 @@
+node_modules/
+# downloaded by scripts/fetch-model.mjs; releases are published, never committed
+public/models/

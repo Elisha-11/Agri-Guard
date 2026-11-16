@@ -11,6 +11,7 @@ import { t, languageLabel } from "../i18n.js";
 import { esc, backButton, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
 import { apiUrl } from "../native.js";
+import { currentModelVersion, modelUpdateStatus } from "../inference/model.js";
 import { state, signOut } from "../state.js";
 import { stopSpeaking } from "../speech.js";
 import pkg from "../../package.json";
@@ -73,6 +74,7 @@ export function render() {
         ${esc(t("settings.version", { version: pkg.version }))}
       </p>
       <p class="ag-settings__api">${esc(t("settings.api"))} <span id="ag-api">…</span></p>
+      <p class="ag-settings__api">${esc(t("settings.model"))} <span id="ag-model">…</span></p>
     </section>
   `;
 }
@@ -93,6 +95,18 @@ export function mount(root) {
   root.querySelector("#ag-signout").addEventListener("click", () => {
     signOut();
     go("/sign-in");
+  });
+
+  const modelLine = root.querySelector("#ag-model");
+  currentModelVersion().then((version) => {
+    const status = modelUpdateStatus();
+    const note =
+      status?.result === "app-too-old"
+        ? t("settings.modelAppTooOld", { version: status.version })
+        : status?.result === "rejected"
+          ? t("settings.modelRejected", { version: status.version })
+          : "";
+    modelLine.textContent = note ? `${version} · ${note}` : version;
   });
 
   const api = root.querySelector("#ag-api");

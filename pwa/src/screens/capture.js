@@ -10,6 +10,12 @@
  * The capture screen doubles as the app's home, so History and Settings are
  * reached from the row above the instruction. That row is not in Figma —
  * no frame in the file provides another way into those screens.
+ *
+ * Live scanning: while the live camera runs, a frame is put through the model
+ * every second or two and the top answer shown on the preview. It is only a
+ * hint for framing the leaf; the farmer still takes a photo for the result
+ * and advice. The pause between scans grows with how long a scan takes, so a
+ * slow phone is never kept busy, and scanning stops in the background.
  */
 
 import { icons, photos } from "../icons.js";
@@ -18,6 +24,13 @@ import { esc } from "../ui.js";
 import { go } from "../router.js";
 import { setSessionImage } from "../state.js";
 import { setDarkStatusBar } from "../native.js";
+import { loadModel } from "../inference/model.js";
+import { diagnose } from "../inference/diagnose.js";
+import { displayName, confidencePercent } from "../disease.js";
+
+/** Shortest pause between live scans, and the multiple of the last scan's time. */
+const LIVE_MIN_GAP_MS = 1200;
+const LIVE_GAP_FACTOR = 2;
 
 export function render() {
   return `
@@ -48,6 +61,7 @@ export function render() {
         <video id="ag-video" playsinline muted autoplay hidden></video>
         <img id="ag-still" src="${photos.capturePreview}" alt="" />
         <div class="ag-capture__guide"></div>
+        <p class="ag-capture__live" id="ag-live" role="status" aria-live="polite" hidden></p>
         <p class="ag-capture__hint" id="ag-hint" hidden></p>
       </div>
 
@@ -84,6 +98,50 @@ export function mount(root) {
   let stream = null;
   let liveCamera = false;
 
+  const live = root.querySelector("#ag-live");
+  let liveTimer = null;
+  let liveStopped = false;
+
+  function scheduleLiveScan(delay) {
+    clearTimeout(liveTimer);
+    if (!liveStopped) liveTimer = setTimeout(liveScan, delay);
+  }
+
+  async function liveScan() {
+    if (liveStopped || !liveCamera) return;
+    if (document.hidden || !video.videoWidth) {
+      scheduleLiveScan(LIVE_MIN_GAP_MS);
+      return;
+    }
+
+    const startedAt = performance.now();
+    try {
+      // createImageBitmap takes the video element directly: the whole frame,
+      // stretched to the model size, as the shutter photo will be.
+      const prediction = await diagnose(video);
+      if (liveStopped) return;
+      live.hidden = false;
+      live.dataset.status = prediction.status;
+      live.textContent =
+        prediction.status === "consult"
+          ? t("capture.liveSearching")
+          : t("capture.liveGuess", {
+              name: displayName(prediction.class_id),
+              percent: confidencePercent(prediction.confidence),
+            });
+    } catch {
+      live.hidden = true; // model not ready or frame unreadable; try again shortly
+    }
+    const took = performance.now() - startedAt;
+    scheduleLiveScan(Math.max(LIVE_MIN_GAP_MS, took * LIVE_GAP_FACTOR));
+  }
+
+  function stopLiveScan() {
+    liveStopped = true;
+    clearTimeout(liveTimer);
+    live.hidden = true;
+  }
+
   function showHint(message) {
     hint.textContent = message;
     hint.hidden = !message;
@@ -106,6 +164,7 @@ export function mount(root) {
       still.hidden = true;
       liveCamera = true;
       showHint("");
+      scheduleLiveScan(LIVE_MIN_GAP_MS);
     } catch {
       // Permission denied, no camera, or an insecure origin. The still stays
       // on screen and the shutter opens the phone's own camera app instead.
@@ -114,6 +173,7 @@ export function mount(root) {
   }
 
   function stopCamera() {
+    stopLiveScan();
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       stream = null;
@@ -163,6 +223,10 @@ export function mount(root) {
 
   startCamera();
   setDarkStatusBar(true); // the capture screen is deep green
+
+  // Load and warm up the model while the farmer frames the leaf. A failure
+  // here is retried when the photo is taken, so it is not reported now.
+  loadModel().catch(() => {});
 
   return () => {
     stopCamera();

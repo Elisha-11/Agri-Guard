@@ -10,12 +10,17 @@
     "test": "vitest run",
     "lint": "eslint src tests",
     "format": "prettier --write src tests",
-    "android:sync": "vite build && node node_modules/@capacitor/cli/bin/capacitor sync android",
+    "model:fetch": "node scripts/fetch-model.mjs",
+    "android:sync": "node scripts/fetch-model.mjs && vite build && node node_modules/@capacitor/cli/bin/capacitor sync android",
     "android:apk": "npm run android:sync && cd android && gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.2",
     "@capacitor/core": "^8.6.2",
+    "@tensorflow/tfjs-backend-cpu": "4.22.0",
+    "@tensorflow/tfjs-backend-webgl": "4.22.0",
+    "@tensorflow/tfjs-converter": "4.22.0",
+    "@tensorflow/tfjs-core": "4.22.0",
     "bootstrap": "^5.3.3"
   },
   "devDependencies": {

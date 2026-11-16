@@ -3,10 +3,8 @@
  * show: a readable disease name, and a severity position on the three-zone
  * bar from the Figma design.
  *
- * The advice copy itself is deliberately NOT written here. docs/model-output.md
- * leaves the advisory content open and the Figma screens carry placeholder
- * text ("pending agronomist sign-off"); real treatment instructions must come
- * from the approved advisory, not from this file.
+ * Advice copy is deliberately NOT written here: it comes only from published,
+ * agronomist-reviewed advice in the advisory bundle (src/advisory.js).
  */
 
 import { t } from "./i18n.js";
@@ -58,16 +56,4 @@ export function severityDisplay(severity) {
 /** Confidence as a whole percentage, e.g. 0.91 -> 91. */
 export function confidencePercent(confidence) {
   return Math.round((Number(confidence) || 0) * 100);
-}
-
-/**
- * The three advice sections shown on the result screen and expanded on the
- * advice screen. Text is placeholder copy carried over from the design.
- */
-export function adviceSections() {
-  return [
-    { key: "treat", title: t("advice.treat.title"), body: t("advice.treat.body") },
-    { key: "prevent", title: t("advice.prevent.title"), body: t("advice.prevent.body") },
-    { key: "check", title: t("advice.check.title"), body: t("advice.check.body") },
-  ];
 }

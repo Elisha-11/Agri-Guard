@@ -12,6 +12,7 @@ import { t, setLanguage, currentLanguage, LANGUAGES } from "../i18n.js";
 import { esc, backButton, bindBack } from "../ui.js";
 import { back } from "../router.js";
 import { state } from "../state.js";
+import { refreshAdvisory } from "../advisory.js";
 
 export function render() {
   const active = currentLanguage();
@@ -66,6 +67,7 @@ export function mount(root) {
       const code = option.dataset.lang;
       state.language = code;
       await setLanguage(code);
+      refreshAdvisory(code); // advice in the new language, in the background
 
       // Re-render in the newly chosen language.
       root.innerHTML = render();
