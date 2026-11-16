@@ -49,6 +49,7 @@ ml/wandb/
 *.png
 *.PNG
 !pwa/public/icons/*.png
+!pwa/src/screens/assets/*.png
 !docs/**/*.png
 
 # --- OS / editors ---
