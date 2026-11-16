@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: AgriGuard AI API
-  version: 0.4.0
+  version: 0.5.0
   summary: Backend contract between the AgriGuard PWA and the Django REST API.
   description: |
     Source of truth for every endpoint (Build Step 2). Changes require approval from all three owners and a version
@@ -26,6 +26,7 @@ tags:
   - name: advisory
   - name: model
   - name: feedback
+  - name: alerts
 
 paths:
   /health/:
@@ -455,6 +456,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /alerts/nearby/:
+    get:
+      tags: [alerts]
+      operationId: getNearbyAlerts
+      summary: Diseases reported by several farms near a location recently (aggregate counts only)
+      description: |
+        Public, like the advisory bundle, so the app can warn before sign-in and from a cached copy offline.
+        Returns only aggregate counts per disease (ADR 0018), never farms, farmers, phone numbers or coordinates.
+
+        A diagnosis counts when it has a location, its disease is not a healthy class, and either its status is
+        `confident` or an extension officer confirmed it in feedback. An extension officer marking it wrong
+        removes it. Uncertain and consult results only count once an officer confirms them. Each farm counts
+        once per disease (a diagnosis without a farm counts once per farmer). A disease appears only when at
+        least `min_farms` farms reported it within `radius_km` during the last `window_days` days.
+
+        The PWA rounds `lat`/`lng` to 2 decimal places (~1 km) before sending, and only sends them with the
+        farmer's location consent.
+      security: []
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: -18.1
+            maximum: -8.2
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: 21.9
+            maximum: 33.8
+      responses:
+        "200":
+          description: Alerts for this area (an empty list when nothing crosses the threshold)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NearbyAlerts"
+        "400":
+          $ref: "#/components/responses/ValidationError"
 
 components:
   securitySchemes:
@@ -902,3 +946,49 @@ components:
         client_id:
           type: string
           format: uuid
+
+    OutbreakAlert:
+      type: object
+      description: One disease reported by several farms nearby. Aggregate only (ADR 0018).
+      required: [class_id, farm_count, distance_band_km, window_days]
+      additionalProperties: false
+      properties:
+        class_id:
+          type: string
+          description: Disease key from labels.json (ADR 0005); never a healthy class
+          example: maize__grey_leaf_spot
+        farm_count:
+          type: integer
+          minimum: 1
+          description: Distinct farms that reported it; always at least NearbyAlerts.min_farms
+          example: 5
+        distance_band_km:
+          type: integer
+          description: '"Within this many km" of the requested point. The configured radius, not a nearest distance.'
+          example: 10
+        window_days:
+          type: integer
+          example: 7
+
+    NearbyAlerts:
+      type: object
+      required: [generated_at, radius_km, window_days, min_farms, alerts]
+      additionalProperties: false
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        radius_km:
+          type: integer
+          example: 10
+        window_days:
+          type: integer
+          example: 7
+        min_farms:
+          type: integer
+          example: 3
+        alerts:
+          type: array
+          description: Most farms first
+          items:
+            $ref: "#/components/schemas/OutbreakAlert"
