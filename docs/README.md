@@ -32,6 +32,7 @@ Changes to these need approval from all three owners (see [CONTRIBUTING](../CONT
 | [ml/splitting.md](ml/splitting.md) | Train / val / test split by farmer with `split.py`: permanent assignments, class balance, warnings |
 | [ml/training.md](ml/training.md) | Baseline training with `train_baseline.py`, `--smoke`, TF.js export and checks, Colab and Windows setup |
 | [ml/field-data.md](ml/field-data.md) | Field photo routine, `metadata.csv` columns and values, `check_batch.py` errors and warnings |
+| [ml/public-datasets.md](ml/public-datasets.md) | Open image datasets per class, licence status, rules before public photos reach training, rejected sets |
 | [repo-settings.md](repo-settings.md) | Who reviews which folder (CODEOWNERS), and the GitHub branch protection settings to tick |
 
 ## Decisions
@@ -58,6 +59,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0015](decisions/0015-code-owners-and-branch-protection.md) | Reviews enforced by CODEOWNERS (owner plus backup); `main` protected | Proposed |
 | [0016](decisions/0016-model-hosting-github-pages.md) | Host model files on GitHub Pages in a separate public repo for now; move to Cloudflare R2 later | Proposed |
 | [0017](decisions/0017-staging-on-render-and-neon.md) | Staging on Render's free plan with a Neon database and the Africa's Talking sandbox | Proposed |
+| [0018](decisions/0018-finish-five-crops-then-add-beans.md) | Finish the five crops before adding more; common beans are next | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 
@@ -65,6 +67,7 @@ To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the
 
 | Document | What it covers |
 |----------|----------------|
+| [crop-priorities.md](crop-priorities.md) | Which crops to add next: official household and production figures, disease pressure, scored ranking, data sources checked |
 | [AgriGuard_Work_Plan.pdf](AgriGuard_Work_Plan.pdf) | Weeks 4–13: each owner's tasks with due dates, milestones M1–M7, interfaces between owners, working rules. A snapshot of 21 Oct 2026; the live tracker is the current version |
 
 ## History

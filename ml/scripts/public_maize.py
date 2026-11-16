@@ -1,9 +1,12 @@
 """Turn downloaded public maize datasets into a cleaned, mapped, grouped and split image set.
 
-Usage:  python ml/scripts/public_maize.py                       # every usable source in ml/data/external
+Usage:  python ml/scripts/public_maize.py                       # every usable source under raw/public/
         python ml/scripts/public_maize.py --test-source zmld    # hold one source out as the whole test set
 
-Reads ml/data/external/<source>/extracted/ (fetch_public.py) and writes ml/data/interim/public_maize/:
+Paths are relative to the data root (docs/ml/public-datasets.md): ml/data/, or AGRIGUARD_DATA_ROOT when
+the data lives outside a synced folder. Reads <data root>/raw/public/<source>/extracted/ (fetch_public.py),
+or the source's reviewed `images/` folder where one exists (e.g. tz-maize), and writes
+<data root>/interim/public_maize/:
 
     <class_id>/<source>__<sha12>.<ext>    kept images, copied byte for byte (never re-encoded)
     unmapped/<source>/<label>/...         images whose label has no class yet (e.g. fall armyworm)
@@ -14,14 +17,19 @@ Reads ml/data/external/<source>/extracted/ (fetch_public.py) and writes ml/data/
     report.md                             counts per class and source, what was dropped and why, gaps
 
 Rules (docs/ml/public-datasets.md):
-- Labels go through ml/mappings/<source>.csv. A label with an empty class_id is kept aside in unmapped/,
-  never guessed. Rows marked `confirm=agronomist` are listed in the report.
+- Labels go through <data root>/raw/public/<source>/mapping.csv when the source was reviewed by hand (its
+  `skip` rows, e.g. `_blurry`, are left out), otherwise ml/mappings/<source>.csv. A label with an empty
+  class_id is kept aside in unmapped/, never guessed. Rows marked `confirm=agronomist` are listed in the
+  report.
 - Dropped: augmented copies (by name), unreadable files, images under 224 px on the short side
   (check_batch.py's minimum), exact duplicates (SHA-256) and near-duplicates (dHash distance <= 4),
   across sources too. The copy from the higher-priority source is kept.
 - Grouping: images within dHash distance 12 of each other (the same leaf or scene, even across sources)
   share a group code in `field_id`, and whole groups are placed by split.py's assign(), so look-alikes
   never straddle train and test. Lab-style sources (PlantVillage-like) are always train, never val/test.
+- Perceptual hashes are off for leaf close-up sources (`perceptual: False`): striped close-ups with the midrib
+  across the middle look alike to dHash even when they are different leaves (found on tz-maize, 27 Oct). Those
+  images are still checked for exact duplicates; each is its own group.
 """
 
 from __future__ import annotations
@@ -29,6 +37,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import os
 import re
 import shutil
 import sys
@@ -42,10 +51,11 @@ from split import SPLITS
 from split import assign as assign_groups
 
 ROOT = Path(__file__).resolve().parents[2]
-EXTERNAL = ROOT / "ml" / "data" / "external"
+DATA_ROOT = Path(os.environ.get("AGRIGUARD_DATA_ROOT") or ROOT / "ml" / "data")
+EXTERNAL = DATA_ROOT / "raw" / "public"
 MAPPINGS = ROOT / "ml" / "mappings"
 TEMPLATE = ROOT / "ml" / "templates" / "metadata.csv"
-OUT = ROOT / "ml" / "data" / "interim" / "public_maize"
+OUT = DATA_ROOT / "interim" / "public_maize"
 
 MIN_SIDE, SMALL_SIDE = 224, 600  # same as check_batch.py
 DROP_DISTANCE = 4  # dHash bits: this close is the same photo (resized, re-saved, lightly edited)
@@ -72,8 +82,9 @@ def _strip_number(name):
     return re.sub(r"_\d+$", "", name)
 
 
-# How each source is read. `label_of` gets the image path relative to <source>/extracted/ and returns the
-# source's own label. `priority`: lower wins when the same photo is in two sources.
+# How each source is read, keyed by its short name under raw/public/. `images` is the folder to read (default
+# `extracted`); `label_of` gets the image path relative to it and returns the source's own label; `priority`:
+# lower wins when the same photo is in two sources; `perceptual: False` turns dHash off for that source.
 SOURCES = {
     "karaagro": {
         "priority": 2,
@@ -81,17 +92,22 @@ SOURCES = {
         "lab": False,
         "label_of": lambda rel: _strip_number(rel.parts[0]),  # healthy_01/... -> healthy
     },
-    "tanzania": {
+    "tz-maize": {
+        # Elisha's reviewed copy (docs/ml/public-datasets.md, accepted 2026-10-27):
+        # images/HEALTHY, MLN, MSV and _blurry
         "priority": 3,
-        "licence": "CC-BY-4.0",
+        "licence": "CC0-1.0",
         "lab": False,
-        "label_of": lambda rel: next((p for p in rel.parts if p.upper() in {"HEALTHY", "MLN", "MSV"}), ""),
+        "images": "images",
+        "perceptual": False,  # leaf close-ups: dHash matches different leaves
+        "label_of": lambda rel: rel.parts[0],
     },
-    "ghana_mendeley": {
+    "ghana-ccmt": {
         "priority": 4,
         "licence": "CC-BY-4.0",
         "lab": False,  # mixed backgrounds; review before allowing any of it into val/test
-        "label_of": lambda rel: rel.parent.name.lower(),
+        # .../Raw Data/CCMT Dataset/Maize/<label>/x.jpg; other crops and the augmented set don't map
+        "label_of": lambda rel: rel.parent.name.lower() if "Maize" in rel.parts[:-1] else "",
     },
     "zmld": {
         "priority": 1,
@@ -199,12 +215,27 @@ def read_mapping_file(path, known_ids):
     """{source label: class id or None} plus the labels that need agronomist confirmation."""
     mapping = parse_mapping(path, known_ids)
     with Path(path).open(encoding="utf-8-sig", newline="") as f:
-        confirm = {
-            (r.get("source") or "").strip(): (r.get("note") or "").strip()
-            for r in csv.DictReader(f)
-            if (r.get("confirm") or "").strip()
-        }
+        rows = list(csv.DictReader(f))
+    confirm = {
+        (r.get("source") or "").strip(): (r.get("note") or "").strip()
+        for r in rows
+        if (r.get("confirm") or "").strip()
+    }
+    # `skip` (as in a hand-reviewed source's mapping.csv) means "leave out"; an empty class_id means
+    # "no class yet, keep aside in unmapped/".
+    for r in rows:
+        if (r.get("class_id") or "").strip() == "skip":
+            mapping[(r.get("source") or "").strip()] = SKIP
     return mapping, confirm
+
+
+SKIP = "skip"
+
+
+def mapping_path(source, external=EXTERNAL, mappings=MAPPINGS):
+    """The source's own reviewed mapping.csv in the data root if there is one, else ml/mappings/."""
+    reviewed = Path(external) / source / "mapping.csv"
+    return reviewed if reviewed.is_file() else Path(mappings) / f"{source}.csv"
 
 
 ROBOFLOW = re.compile(r"^(?P<original>.+)\.rf\.[0-9a-f]{16,}$", re.IGNORECASE)
@@ -234,6 +265,8 @@ def discover(source, extracted, mapping):
             c.dropped = "augmented (second Roboflow export of one photo)"
         elif label not in mapping:
             c.dropped = "label not in mapping"
+        elif mapping[label] == SKIP:
+            c.dropped = f"set aside by review ({label})"
         else:
             c.class_id = mapping[label]
         if not c.dropped:
@@ -285,7 +318,7 @@ def drop_duplicates(candidates):
         else:
             first[c.sha256] = c
 
-    live = [c for c in live if not c.dropped]
+    live = [c for c in live if not c.dropped and SOURCES[c.source].get("perceptual", True)]
     uf = UnionFind(len(live))
     for i, j in near_pairs([c.dhash for c in live], DROP_DISTANCE):
         uf.union(i, j)  # union keeps the lower index, i.e. the higher-priority copy, as the root
@@ -300,8 +333,9 @@ def drop_duplicates(candidates):
 def assign_group_codes(kept):
     """Group look-alikes (dHash <= GROUP_DISTANCE, any source). Codes match check_batch.py's CODE format."""
     uf = UnionFind(len(kept))
-    for i, j in near_pairs([c.dhash for c in kept], GROUP_DISTANCE):
-        uf.union(i, j)
+    perceptual = [i for i, c in enumerate(kept) if SOURCES[c.source].get("perceptual", True)]
+    for a, b in near_pairs([kept[i].dhash for i in perceptual], GROUP_DISTANCE):
+        uf.union(perceptual[a], perceptual[b])
     numbers = {}
     for i, c in enumerate(kept):
         root = uf.find(i)
@@ -429,13 +463,13 @@ def run(external=EXTERNAL, out=OUT, mappings=MAPPINGS, test_sources=(), labels=N
     ids = class_ids(labels or load_labels())
     candidates, excluded, confirm = [], {}, {}
     for source, config in SOURCES.items():
-        extracted = Path(external) / source / "extracted"
+        extracted = Path(external) / source / config.get("images", "extracted")
         if not extracted.is_dir():
             continue
         if config.get("exclude"):
             excluded[source] = config["exclude"]
             continue
-        mapping, needs = read_mapping_file(Path(mappings) / f"{source}.csv", ids)
+        mapping, needs = read_mapping_file(mapping_path(source, external, mappings), ids)
         confirm.update({(source, label): note for label, note in needs.items()})
         found = discover(source, extracted, mapping)
         for c in found:

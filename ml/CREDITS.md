@@ -19,11 +19,14 @@ every model release and in any publication or report that uses these datasets.
 |---------|---------|--------------|-----------------------------------|
 | Zambia Maize Leaf Dataset | CC BY 4.0 | The Zenodo upload holds 1,388 of the 19,990 images described, mostly Kaggle/PlantVillage copies, with contradictory labels. A request for the full set is drafted for the author (not yet sent). | Kalunga, P. (2026). *Zambia Maize Leaf Dataset* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.18430185 |
 
-## Approved, being added
+## Accepted, reviewed by Elisha (27 Oct 2026)
 
-- Mduma, N., & Mayo, F. (2023). *Maize imagery dataset - Tanzania* (Version 1) [Data set]. Mendeley Data.
-  https://doi.org/10.17632/fkw49mz3xs.1. Licence: CC BY 4.0. Described in Mduma & Mayo, *Data in Brief* 54
-  (2024) 110359. Approved for download on 2026-11-16 (7.49 GB).
+| Dataset | Licence | Attribution |
+|---------|---------|-------------|
+| The Nelson Mandela African Institution of Science and Technology Maize dataset (V6) ("tz-maize") | CC0 1.0 (no attribution required; credited as a courtesy) | Mduma, N., Laizer, H., Loyani, L., Macheli, M., Msengi, Z., Karama, A., Msaki, I., Sanga, S., & Jomanga, K. (2023). *The Nelson Mandela African Institution of Science and Technology Maize dataset* (V6) [Data set]. Harvard Dataverse. https://doi.org/10.7910/DVN/GDON8Q |
+
+The Mendeley copy of the Tanzania photos (Mduma & Mayo, 2023, https://doi.org/10.17632/fkw49mz3xs.1, CC BY 4.0) is
+superseded by the Dataverse set above and was not downloaded.
 
 ## Licence fine, not yet downloaded
 

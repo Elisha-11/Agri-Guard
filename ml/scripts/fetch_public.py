@@ -26,18 +26,22 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXTERNAL = ROOT / "ml" / "data" / "external"
+# docs/ml/public-datasets.md: the data root is ml/data/ (git-ignored), or a folder outside OneDrive or
+# any synced folder when the repo lives in one. Public datasets go under <data root>/raw/public/<name>/.
+DATA_ROOT = Path(os.environ.get("AGRIGUARD_DATA_ROOT") or ROOT / "ml" / "data")
+EXTERNAL = DATA_ROOT / "raw" / "public"
 MANIFEST = EXTERNAL / "sources.json"
 USER_AGENT = "AgriGuard-dataset-fetch/1.0"
 CHUNK = 1 << 20
 
-DATAVERSE_FILES = (
-    "https://dataverse.harvard.edu/api/datasets/:persistentId/versions/:latest/files"
-    "?persistentId=doi:10.7910/DVN/CXUMDS"
+DATAVERSE_LISTING = (
+    "https://dataverse.harvard.edu/api/datasets/:persistentId/versions/:latest/files?persistentId=doi:{doi}"
 )
+DATAVERSE_FILES = DATAVERSE_LISTING.format(doi="10.7910/DVN/CXUMDS")
 
 # Status: approved = may be downloaded; not-approved = licence fine but the download wasn't agreed;
-# licence-unclear = must not be downloaded until the licence is confirmed in writing.
+# superseded = another source holds the same photos; licence-unclear = must not be downloaded until the
+# licence is confirmed in writing. Keys are the short names used as folder names under raw/public/.
 SOURCES = {
     "zmld": {
         "title": "Zambia Maize Leaf Dataset",
@@ -87,9 +91,25 @@ SOURCES = {
             },
         ],
     },
-    "tanzania": {
-        "title": "Maize Imagery Dataset - Tanzania",
+    "tz-maize": {
+        "title": "The Nelson Mandela African Institution of Science and Technology Maize dataset (V6)",
         "status": "approved",
+        "licence": "CC0-1.0",
+        "doi": "10.7910/DVN/GDON8Q",
+        "url": "https://doi.org/10.7910/DVN/GDON8Q",
+        "citation": "Mduma, N., Laizer, H., Loyani, L., Macheli, M., Msengi, Z., Karama, A., Msaki, I., "
+        "Sanga, S., & Jomanga, K. (2023). The Nelson Mandela African Institution of Science and Technology "
+        "Maize dataset (V6) [Data set]. Harvard Dataverse. https://doi.org/10.7910/DVN/GDON8Q",
+        # Accepted by Elisha on 2026-10-27 (docs/ml/public-datasets.md): Dataverse version 6, four zips,
+        # 4.2 GB, MD5-checked; his reviewed copy lives in <data root>/raw/public/tz-maize/images/. Files
+        # are looked up by name in the Dataverse listing, for re-fetching on another machine.
+        "dataverse_doi": "10.7910/DVN/GDON8Q",
+        "files": [{"name": name} for name in ("HEATHLY.zip", "MLN.zip", "MSV_1.zip", "MSV_2.zip")],
+        "note": "Accepted 2026-10-27 (14,933 photos kept). Use the reviewed copy in tz-maize/images/.",
+    },
+    "tz-maize-mendeley": {
+        "title": "Maize Imagery Dataset - Tanzania",
+        "status": "superseded",
         "licence": "CC-BY-4.0",
         "doi": "10.17632/fkw49mz3xs.1",
         "url": "https://data.mendeley.com/datasets/fkw49mz3xs/1",
@@ -119,9 +139,10 @@ SOURCES = {
                 "bytes": 2576832390,
             },
         ],
-        "note": "Only source with MLN (3,231). Approved 2026-11-16: three per-class zips, 7.49 GB.",
+        "note": "Superseded by tz-maize (Dataverse, more photos, already reviewed). "
+        "Download stopped 2026-11-16.",
     },
-    "ghana_mendeley": {
+    "ghana-ccmt": {
         "title": "Dataset for Crop Pest and Disease Detection",
         "status": "not-approved",
         "licence": "CC-BY-4.0",
@@ -132,7 +153,7 @@ SOURCES = {
         "files": [],
         "note": "Use the raw maize images only, never the augmented set. Download size not yet known.",
     },
-    "wiesner_hanks_nlb": {
+    "wiesner-hanks-nlb": {
         "title": "Image set for deep learning: field images of maize annotated with disease symptoms",
         "status": "licence-unclear",
         "licence": "",
@@ -203,11 +224,16 @@ def open_url(url):
     return urllib.request.urlopen(request, timeout=60)  # noqa: S310 - fixed https URLs from SOURCES
 
 
-def dataverse_md5s(opener=open_url):
+def dataverse_md5s(opener=open_url, doi="10.7910/DVN/CXUMDS"):
     """{datafile id: md5} from the Dataverse file listing."""
-    with opener(DATAVERSE_FILES) as response:
+    return {i: md5 for i, (_name, md5) in dataverse_files(opener, doi).items()}
+
+
+def dataverse_files(opener=open_url, doi="10.7910/DVN/CXUMDS"):
+    """{datafile id: (file name, md5)} from the Dataverse file listing."""
+    with opener(DATAVERSE_LISTING.format(doi=doi)) as response:
         data = json.load(response)["data"]
-    return {f["dataFile"]["id"]: f["dataFile"]["md5"] for f in data}
+    return {f["dataFile"]["id"]: (f["dataFile"].get("filename", ""), f["dataFile"]["md5"]) for f in data}
 
 
 def download(file, dest, opener=open_url, progress=None):
@@ -273,7 +299,16 @@ def fetch(key, *, do_extract=False, opener=open_url, manifest_path=MANIFEST, ext
     source = require_approved(key)
     manifest = read_manifest(manifest_path)
     files = [dict(f) for f in source["files"]]
-    if any("dataverse_id" in f for f in files):
+    if "dataverse_doi" in source:  # look files up by name
+        by_name = {
+            name: (i, md5) for i, (name, md5) in dataverse_files(opener, source["dataverse_doi"]).items()
+        }
+        for f in files:
+            if f["name"] not in by_name:
+                raise FetchError(f"{key}: {f['name']} is not in the Dataverse listing")
+            file_id, f["md5"] = by_name[f["name"]]
+            f["url"] = f"https://dataverse.harvard.edu/api/access/datafile/{file_id}"
+    elif any("dataverse_id" in f for f in files):
         md5s = dataverse_md5s(opener)
         for f in files:
             f["md5"] = md5s[f["dataverse_id"]]
@@ -284,7 +319,7 @@ def fetch(key, *, do_extract=False, opener=open_url, manifest_path=MANIFEST, ext
         if dest.is_file() and hash_of(dest, kind) == f[kind]:
             print(f"{key}/{f['name']}: already downloaded and verified")
         else:
-            print(f"{key}/{f['name']}: downloading {f['bytes'] / 1e9:.2f} GB")
+            print(f"{key}/{f['name']}: downloading {f.get('bytes', 0) / 1e9:.2f} GB")
             entry = download(f, dest, opener)
             record(manifest, key, source, entry)
             write_manifest(manifest, manifest_path)

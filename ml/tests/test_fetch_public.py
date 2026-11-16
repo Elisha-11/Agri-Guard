@@ -35,7 +35,7 @@ def opener_for(payloads):
 
 def test_every_source_records_licence_citation_and_status():
     for key, source in fp.SOURCES.items():
-        assert source["status"] in {"approved", "not-approved", "licence-unclear"}, key
+        assert source["status"] in {"approved", "not-approved", "superseded", "licence-unclear"}, key
         assert source["citation"] and source["url"], key
         if source["status"] == "approved":
             assert source["licence"] and source["doi"] and source["files"], key
@@ -51,7 +51,7 @@ def test_sources_without_a_confirmed_licence_or_approval_cannot_be_fetched():
 
 
 def test_the_unclear_licence_source_is_blocked():
-    assert fp.SOURCES["wiesner_hanks_nlb"]["status"] == "licence-unclear"
+    assert fp.SOURCES["wiesner-hanks-nlb"]["status"] == "licence-unclear"
 
 
 def test_download_keeps_a_file_only_when_its_md5_matches(tmp_path):
@@ -154,4 +154,36 @@ def test_every_approved_file_has_a_published_checksum():
     for key, source in fp.SOURCES.items():
         if source["status"] == "approved":
             for f in source["files"]:
-                assert "sha256" in f or "md5" in f or "dataverse_id" in f, (key, f["name"])
+                published = "sha256" in f or "md5" in f or "dataverse_id" in f or "dataverse_doi" in source
+                assert published, (key, f["name"])
+
+
+def test_dataverse_files_are_found_by_name_with_their_md5(tmp_path, monkeypatch):
+    data = b"tz zip"
+    md5 = hashlib.md5(data).hexdigest()  # noqa: S324
+    source = {**fp.SOURCES["tz-maize"], "files": [{"name": "MLN.zip"}]}
+    monkeypatch.setitem(fp.SOURCES, "tz-maize", source)
+    listing = {"data": [{"dataFile": {"id": 42, "filename": "MLN.zip", "md5": md5}}]}
+    payloads = {
+        fp.DATAVERSE_LISTING.format(doi="10.7910/DVN/GDON8Q"): json.dumps(listing).encode(),
+        "https://dataverse.harvard.edu/api/access/datafile/42": data,
+    }
+    fp.fetch("tz-maize", opener=opener_for(payloads), manifest_path=tmp_path / "s.json", external=tmp_path)
+    assert (tmp_path / "tz-maize" / "archives" / "MLN.zip").read_bytes() == data
+
+
+def test_the_mendeley_tanzania_copy_is_superseded_by_the_reviewed_dataverse_set():
+    assert fp.SOURCES["tz-maize-mendeley"]["status"] == "superseded"
+    assert fp.SOURCES["tz-maize"]["licence"] == "CC0-1.0"
+
+
+def test_the_data_root_can_live_outside_the_repo(monkeypatch, tmp_path):
+    import importlib
+
+    monkeypatch.setenv("AGRIGUARD_DATA_ROOT", str(tmp_path))
+    reloaded = importlib.reload(fp)
+    try:
+        assert reloaded.EXTERNAL == tmp_path / "raw" / "public"
+    finally:
+        monkeypatch.delenv("AGRIGUARD_DATA_ROOT")
+        importlib.reload(fp)

@@ -1,0 +1,5 @@
+source,class_id,confirm,note
+HEALTHY,maize__healthy,,
+MLN,maize__lethal_necrosis,,
+MSV,maize__streak_virus,,
+_blurry,skip,,Set aside as blurry in the 27 Oct review (Laplacian variance < 40)

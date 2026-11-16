@@ -26,8 +26,6 @@ pwa/dev-dist/
 ml/data/raw/
 ml/data/processed/
 ml/data/interim/
-# public datasets as downloaded (scripts/fetch_public.py): never in git, re-fetch from sources.json
-ml/data/external/
 ml/.venv/
 ml/models/
 # training runs and TF.js exports (ADR 0014): SavedModels, shards and model.json stay out of git

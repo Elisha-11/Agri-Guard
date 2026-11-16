@@ -32,11 +32,32 @@ def cand(
 def test_every_mapping_file_parses_and_targets_real_maize_classes(path):
     mapping, _ = pm.read_mapping_file(path, IDS)
     for label, target in mapping.items():
-        assert target is None or target.startswith("maize__"), (label, target)
+        assert target in (None, pm.SKIP) or target.startswith("maize__"), (label, target)
+
+
+def test_skip_rows_are_left_out_and_empty_rows_kept_aside(tmp_path):
+    images = tmp_path / "images"
+    for folder in ("HEALTHY", "_blurry", "PESTS"):
+        (images / folder).mkdir(parents=True)
+        (images / folder / "a.jpg").write_bytes(b"x")
+    mapping = tmp_path / "mapping.csv"
+    mapping.write_text("source,class_id\nHEALTHY,maize__healthy\n_blurry,skip\nPESTS,\n", encoding="utf-8")
+    labels, _ = pm.read_mapping_file(mapping, IDS)
+    found = {c.original_label: c for c in pm.discover("tz-maize", images, labels)}
+    assert found["HEALTHY"].class_id == "maize__healthy" and not found["HEALTHY"].dropped
+    assert found["_blurry"].dropped == "set aside by review (_blurry)"
+    assert found["PESTS"].class_id is None and not found["PESTS"].dropped  # unmapped, kept aside
+
+
+def test_a_reviewed_mapping_in_the_data_root_wins(tmp_path):
+    (tmp_path / "tz-maize").mkdir()
+    (tmp_path / "tz-maize" / "mapping.csv").write_text("source,class_id\n", encoding="utf-8")
+    assert pm.mapping_path("tz-maize", tmp_path) == tmp_path / "tz-maize" / "mapping.csv"
+    assert pm.mapping_path("karaagro", tmp_path) == pm.MAPPINGS / "karaagro.csv"
 
 
 def test_unclear_labels_are_flagged_or_left_unmapped_never_guessed():
-    mapping, confirm = pm.read_mapping_file(MAPPINGS / "ghana_mendeley.csv", IDS)
+    mapping, confirm = pm.read_mapping_file(MAPPINGS / "ghana-ccmt.csv", IDS)
     assert "leaf blight" in confirm and "leaf spot" in confirm
     assert mapping["fall armyworm"] is None
     assert mapping["grasshoper"] is None  # spelled so in the source
@@ -118,15 +139,28 @@ def test_near_pairs_finds_exactly_the_pairs_within_distance():
 
 def test_exact_and_near_duplicates_are_dropped_keeping_the_higher_priority_source():
     kara = cand("karaagro", "healthy_01/a.jpg", sha="same", dhash=0)
-    tz_exact = cand("tanzania", "HEALTHY/b.jpg", label="HEALTHY", sha="same", dhash=0)
-    tz_near = cand("tanzania", "HEALTHY/c.jpg", label="HEALTHY", sha="other", dhash=0b11)
-    unrelated = cand("tanzania", "HEALTHY/d.jpg", label="HEALTHY", sha="d", dhash=(1 << 64) - 1)
-    pm.drop_duplicates([tz_exact, tz_near, unrelated, kara])
+    gh_exact = cand("ghana-ccmt", "Maize/healthy/b.jpg", sha="same", dhash=0)
+    gh_near = cand("ghana-ccmt", "Maize/healthy/c.jpg", sha="other", dhash=0b11)
+    unrelated = cand("ghana-ccmt", "Maize/healthy/d.jpg", sha="d", dhash=(1 << 64) - 1)
+    pm.drop_duplicates([gh_exact, gh_near, unrelated, kara])
 
     assert kara.dropped == ""
-    assert tz_exact.dropped == "exact duplicate" and tz_exact.duplicate_of == "karaagro:healthy_01/a.jpg"
-    assert tz_near.dropped == "near duplicate" and tz_near.duplicate_of == "karaagro:healthy_01/a.jpg"
+    assert gh_exact.dropped == "exact duplicate" and gh_exact.duplicate_of == "karaagro:healthy_01/a.jpg"
+    assert gh_near.dropped == "near duplicate" and gh_near.duplicate_of == "karaagro:healthy_01/a.jpg"
     assert unrelated.dropped == ""
+
+
+def test_leaf_close_up_sources_skip_perceptual_matching_but_not_exact_duplicates():
+    """Elisha, 27 Oct: dHash matches *different* tz-maize close-ups, so it must not drop or group them."""
+    a = cand("tz-maize", "MSV/a.jpg", label="MSV", cls="maize__streak_virus", sha="a", dhash=0)
+    b = cand("tz-maize", "MSV/b.jpg", label="MSV", cls="maize__streak_virus", sha="b", dhash=0b1)
+    copy = cand("tz-maize", "MSV/c.jpg", label="MSV", cls="maize__streak_virus", sha="a", dhash=0)
+    pm.drop_duplicates([a, b, copy])
+    assert a.dropped == "" and b.dropped == ""
+    assert copy.dropped == "exact duplicate"
+
+    pm.assign_group_codes([a, b])
+    assert a.group != b.group
 
 
 def test_already_dropped_images_are_ignored_by_duplicate_detection():
@@ -225,14 +259,14 @@ def test_report_lists_short_classes_drop_reasons_and_confirmations():
     text = pm.report_markdown(
         kept + dropped,
         excluded={"zmld": "broken upload"},
-        confirm={("ghana_mendeley", "leaf spot"): "may not be GLS"},
+        confirm={("ghana-ccmt", "leaf spot"): "may not be GLS"},
         test_sources=(),
     )
     assert "| `maize__healthy` |" in text and "**5**" in text
     assert "| karaagro | corrupt | 1 |" in text and "| karaagro | augmented | 1 |" in text
     assert "`maize__common_rust`: 0" in text
     assert "zmld**: broken upload" in text
-    assert 'ghana_mendeley / "leaf spot"' in text
+    assert 'ghana-ccmt / "leaf spot"' in text
     assert "never be in val or test" in text
 
 
