@@ -17,14 +17,18 @@ every model release and in any publication or report that uses these datasets.
 
 | Dataset | Licence | Why not used | Attribution (if it is used later) |
 |---------|---------|--------------|-----------------------------------|
-| Zambia Maize Leaf Dataset | CC BY 4.0 | The Zenodo upload holds 1,388 of the 19,990 images described, mostly Kaggle/PlantVillage copies, with contradictory labels. We have asked the author for the full set. | Kalunga, P. (2026). *Zambia Maize Leaf Dataset* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.18430185 |
+| Zambia Maize Leaf Dataset | CC BY 4.0 | The Zenodo upload holds 1,388 of the 19,990 images described, mostly Kaggle/PlantVillage copies, with contradictory labels. A request for the full set is drafted for the author (not yet sent). | Kalunga, P. (2026). *Zambia Maize Leaf Dataset* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.18430185 |
 
-## Approved for licence, not downloaded
-
-These need the team's agreement on download size first. If used, attribute them as follows (CC BY 4.0):
+## Approved, being added
 
 - Mduma, N., & Mayo, F. (2023). *Maize imagery dataset - Tanzania* (Version 1) [Data set]. Mendeley Data.
-  https://doi.org/10.17632/fkw49mz3xs.1. Described in Mduma & Mayo, *Data in Brief* 54 (2024) 110359.
+  https://doi.org/10.17632/fkw49mz3xs.1. Licence: CC BY 4.0. Described in Mduma & Mayo, *Data in Brief* 54
+  (2024) 110359. Approved for download on 2026-11-16 (7.49 GB).
+
+## Licence fine, not yet downloaded
+
+Needs the team's agreement first. If used, attribute it as follows (CC BY 4.0):
+
 - Mensah Kwabena, P., Akoto-Adjepong, V., Adu, K., et al. (2023). *Dataset for Crop Pest and Disease
   Detection* (Version 1) [Data set]. Mendeley Data. https://doi.org/10.17632/bwh3zbpkpv.1.
   (Author order to be checked against the Mendeley page before publication.)

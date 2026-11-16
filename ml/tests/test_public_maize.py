@@ -39,7 +39,7 @@ def test_unclear_labels_are_flagged_or_left_unmapped_never_guessed():
     mapping, confirm = pm.read_mapping_file(MAPPINGS / "ghana_mendeley.csv", IDS)
     assert "leaf blight" in confirm and "leaf spot" in confirm
     assert mapping["fall armyworm"] is None
-    assert mapping["grasshopper"] is None
+    assert mapping["grasshoper"] is None  # spelled so in the source
 
 
 def test_fall_armyworm_is_not_a_class():

@@ -89,14 +89,37 @@ SOURCES = {
     },
     "tanzania": {
         "title": "Maize Imagery Dataset - Tanzania",
-        "status": "not-approved",
+        "status": "approved",
         "licence": "CC-BY-4.0",
         "doi": "10.17632/fkw49mz3xs.1",
         "url": "https://data.mendeley.com/datasets/fkw49mz3xs/1",
         "citation": "Mduma, N., & Mayo, F. (2023). Maize imagery dataset - Tanzania (Version 1) [Data set]. "
         "Mendeley Data. https://doi.org/10.17632/fkw49mz3xs.1",
-        "files": [],
-        "note": "Only source with MLN (3,231). Three per-class zips, 7.0 GB in total. Not yet approved.",
+        # SHA-256 from the Mendeley public API file listing (content_details.sha256_hash), 2026-11-16.
+        "files": [
+            {
+                "name": "HEALTHY.zip",
+                "url": "https://data.mendeley.com/public-files/datasets/fkw49mz3xs/files/"
+                "5dd32b08-bd7a-41bf-9800-a3b59095fd7c/file_downloaded",
+                "sha256": "1d7932d934ae8e45281f45a2b1457605d4f7c6b9f8a7b22caab2ccc51e33d6ab",
+                "bytes": 2512057437,
+            },
+            {
+                "name": "MLN.zip",
+                "url": "https://data.mendeley.com/public-files/datasets/fkw49mz3xs/files/"
+                "d520d003-ee5e-46ac-bdfe-3091496b46b0/file_downloaded",
+                "sha256": "1bbc8a48d4e2b71283f4802e7250fec37c29ff38e71157db6357d8e03aff320e",
+                "bytes": 2399024212,
+            },
+            {
+                "name": "MSV.zip",
+                "url": "https://data.mendeley.com/public-files/datasets/fkw49mz3xs/files/"
+                "992c1710-e858-4af8-b1bc-e3c8d1652d90/file_downloaded",
+                "sha256": "9e8ea3bb248d4b26efc78678641e77384372e4b31fe939b7ba4bd178350dd6d9",
+                "bytes": 2576832390,
+            },
+        ],
+        "note": "Only source with MLN (3,231). Approved 2026-11-16: three per-class zips, 7.49 GB.",
     },
     "ghana_mendeley": {
         "title": "Dataset for Crop Pest and Disease Detection",
@@ -127,12 +150,21 @@ class FetchError(RuntimeError):
     pass
 
 
-def md5_of(path):
-    digest = hashlib.md5()  # noqa: S324 - matching the repository's published checksum, not for security
+def checksum_kind(file):
+    """The checksum the publisher gives for a file: Zenodo and Dataverse publish MD5, Mendeley SHA-256."""
+    return "sha256" if "sha256" in file else "md5"
+
+
+def hash_of(path, kind="md5"):
+    digest = hashlib.new(kind)  # MD5 only to match the publisher's checksum, not for security
     with Path(path).open("rb") as f:
         for chunk in iter(lambda: f.read(CHUNK), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def md5_of(path):
+    return hash_of(path, "md5")
 
 
 def read_manifest(path=MANIFEST):
@@ -183,7 +215,8 @@ def download(file, dest, opener=open_url, progress=None):
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
-    digest, done = hashlib.md5(), 0  # noqa: S324
+    kind = checksum_kind(file)
+    digest, done = hashlib.new(kind), 0
     with opener(file["url"]) as response, part.open("wb") as out:
         for chunk in iter(lambda: response.read(CHUNK), b""):
             out.write(chunk)
@@ -191,11 +224,13 @@ def download(file, dest, opener=open_url, progress=None):
             done += len(chunk)
             if progress:
                 progress(done)
-    if digest.hexdigest() != file["md5"]:
+    if digest.hexdigest() != file[kind]:
         part.unlink()
-        raise FetchError(f"{dest.name}: MD5 {digest.hexdigest()} does not match the published {file['md5']}")
+        raise FetchError(
+            f"{dest.name}: {kind.upper()} {digest.hexdigest()} does not match the published {file[kind]}"
+        )
     part.replace(dest)
-    return {"name": dest.name, "bytes": done, "md5": file["md5"], "source_url": file["url"]}
+    return {"name": dest.name, "bytes": done, kind: file[kind], "source_url": file["url"]}
 
 
 def libarchive_tar():
@@ -245,7 +280,8 @@ def fetch(key, *, do_extract=False, opener=open_url, manifest_path=MANIFEST, ext
 
     for f in files:
         dest = Path(external) / key / "archives" / f["name"]
-        if dest.is_file() and md5_of(dest) == f["md5"]:
+        kind = checksum_kind(f)
+        if dest.is_file() and hash_of(dest, kind) == f[kind]:
             print(f"{key}/{f['name']}: already downloaded and verified")
         else:
             print(f"{key}/{f['name']}: downloading {f['bytes'] / 1e9:.2f} GB")

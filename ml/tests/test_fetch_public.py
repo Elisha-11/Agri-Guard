@@ -137,3 +137,21 @@ def test_extraction_runs_once(tmp_path):
     (out / "healthy" / "a.jpg").unlink()
     fp.extract(archive, tmp_path / "out")  # marker present: not unpacked again
     assert not (out / "healthy" / "a.jpg").exists()
+
+
+def test_mendeley_files_are_checked_with_sha256(tmp_path):
+    data = b"mendeley zip"
+    file = {"url": "https://x/m.zip", "sha256": hashlib.sha256(data).hexdigest()}
+    entry = fp.download(file, tmp_path / "m.zip", opener_for({file["url"]: data}))
+    assert entry["sha256"] == file["sha256"] and "md5" not in entry
+
+    tampered = {"url": "https://x/t.zip", "sha256": "0" * 64}
+    with pytest.raises(fp.FetchError, match="SHA256"):
+        fp.download(tampered, tmp_path / "t.zip", opener_for({tampered["url"]: data}))
+
+
+def test_every_approved_file_has_a_published_checksum():
+    for key, source in fp.SOURCES.items():
+        if source["status"] == "approved":
+            for f in source["files"]:
+                assert "sha256" in f or "md5" in f or "dataverse_id" in f, (key, f["name"])

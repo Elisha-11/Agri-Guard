@@ -58,8 +58,8 @@ python ml/scripts/train_baseline.py --images ml/data/interim/public_maize \
 |--------|---------|---------------|--------|
 | KaraAgro AI Maize (Ghana), Harvard Dataverse | CC0 | healthy, fall armyworm, streak | approved: `healthy_01` + `maize_streak_01` only (4.3 of 41.2 GB) |
 | Zambia Maize Leaf Dataset, Zenodo | CC BY 4.0 | GLS, NLB, MSV, healthy | downloaded, **excluded**: incomplete upload with contradictory labels |
-| Maize Imagery Dataset – Tanzania, Mendeley | CC BY 4.0 | healthy, MLN, MSV | not approved yet (7.0 GB); the only MLN source |
-| Crop Pest and Disease Detection (Ghana), Mendeley | CC BY 4.0 | healthy, leaf blight, leaf spot, streak, 3 pests | not approved yet; raw images only, never the augmented set |
+| Maize Imagery Dataset – Tanzania, Mendeley | CC BY 4.0 | healthy, MLN, MSV | approved 2026-11-16: three zips, 7.49 GB, SHA-256 checked; the only MLN source |
+| Crop Pest and Disease Detection (Ghana), Mendeley | CC BY 4.0 | healthy, leaf blight, leaf spot, streak, 3 pests | not approved yet. Only one 8.44 GB zip, but the 5,358 raw maize images (269 MB) can be range-read from it; never the augmented set |
 | Wiesner-Hanks et al. 2018 NLB, OSF | none recorded | NLB | licence unclear: do not download |
 
 No open field source with **common rust** was found. The class stays empty (the model keeps its output, and
