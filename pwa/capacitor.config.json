@@ -1,0 +1,10 @@
+{
+  "appId": "zm.agriguard.app",
+  "appName": "AgriGuard",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

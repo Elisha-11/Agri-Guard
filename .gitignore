@@ -50,6 +50,7 @@ ml/wandb/
 *.PNG
 !pwa/public/icons/*.png
 !pwa/src/screens/assets/*.png
+!pwa/android/app/src/main/res/**/*.png
 !docs/**/*.png
 
 # --- OS / editors ---

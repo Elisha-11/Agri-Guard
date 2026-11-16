@@ -17,6 +17,7 @@ import { t } from "../i18n.js";
 import { esc } from "../ui.js";
 import { go } from "../router.js";
 import { setSessionImage } from "../state.js";
+import { setDarkStatusBar } from "../native.js";
 
 export function render() {
   return `
@@ -161,6 +162,10 @@ export function mount(root) {
   });
 
   startCamera();
+  setDarkStatusBar(true); // the capture screen is deep green
 
-  return () => stopCamera();
+  return () => {
+    stopCamera();
+    setDarkStatusBar(false);
+  };
 }

@@ -60,6 +60,11 @@
     sans-serif;
 
   --ag-screen-max: 420px;
+
+  /* System bar heights. The Android app (Capacitor 8) draws edge to edge and
+     injects --safe-area-inset-*; browsers use env() with viewport-fit=cover. */
+  --ag-inset-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --ag-inset-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
 }
 
 * {
@@ -89,7 +94,15 @@ body {
   min-height: 100dvh;
   margin-inline: auto;
   background: var(--ag-bg);
-  overflow-x: hidden;
+  /* clip, not hidden: hidden makes the screen a scroll container, and the
+     sticky footer then sticks to the screen instead of the viewport. */
+  overflow-x: clip;
+  /* Keep content clear of the status and navigation bars. Transparent borders
+     rather than padding, so each screen keeps its own padding and its
+     background still fills the area behind the bars. */
+  box-sizing: border-box;
+  border-top: var(--ag-inset-top) solid transparent;
+  border-bottom: var(--ag-inset-bottom) solid transparent;
 }
 
 /* Content that scrolls with the page, under an action button that stays
@@ -102,10 +115,9 @@ body {
 
 .ag-screen__footer {
   position: sticky;
-  bottom: 0;
+  bottom: var(--ag-inset-bottom); /* stick above the navigation bar */
   flex: 0 0 auto;
   padding: 16px;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: var(--ag-bg);
 }
 
@@ -209,7 +221,7 @@ body {
    explains why the API-backed bits are quiet. */
 .ag-offline {
   position: fixed;
-  top: 0;
+  top: var(--ag-inset-top); /* below the status bar */
   left: 50%;
   z-index: 20;
   margin: 0;

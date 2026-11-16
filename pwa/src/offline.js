@@ -15,6 +15,19 @@ import { registerSW } from "virtual:pwa-register";
 import { t } from "./i18n.js";
 
 export function registerServiceWorker() {
+  // In the Android app (Capacitor) the shell already ships inside the APK, so a
+  // service worker adds nothing and could serve a stale shell after an update.
+  // Remove one left by an earlier build, then reload once so this build's
+  // files are the ones on screen.
+  if (window.Capacitor?.isNativePlatform?.()) {
+    navigator.serviceWorker?.getRegistrations().then(async (registrations) => {
+      if (!registrations.length) return;
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+      window.location.reload();
+    });
+    return;
+  }
+
   // `autoUpdate` in vite.config.js means a new build takes over on the next
   // load; nothing to prompt the farmer about.
   registerSW({ immediate: true });

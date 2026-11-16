@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AgriGuard leaf (public/icons/icon-512.png) as a vector, sized for the
+     adaptive-icon safe zone: 108dp canvas, leaf inside the central 66dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- leaf: ellipse 36 x 44 centred on the canvas -->
+    <path
+        android:fillColor="#E9F4E4"
+        android:pathData="M54,32 A18,22 0 1,1 53.99,32 Z" />
+    <!-- midrib -->
+    <path
+        android:fillColor="#20703F"
+        android:pathData="M53.2,35 h1.6 v38 h-1.6 Z" />
+</vector>

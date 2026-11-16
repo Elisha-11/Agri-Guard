@@ -10,6 +10,7 @@ import { icons } from "../icons.js";
 import { t, languageLabel } from "../i18n.js";
 import { esc, backButton, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
+import { apiUrl } from "../native.js";
 import { state, signOut } from "../state.js";
 import { stopSpeaking } from "../speech.js";
 import pkg from "../../package.json";
@@ -97,7 +98,7 @@ export function mount(root) {
   const api = root.querySelector("#ag-api");
   let live = true;
 
-  fetch("/api/v1/health/")
+  fetch(apiUrl("/api/v1/health/"))
     .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
     .then((health) => {
       if (live) api.textContent = `${health.status} (v${health.version})`;
