@@ -464,7 +464,7 @@ paths:
       summary: Diseases reported by several farms near a location recently (aggregate counts only)
       description: |
         Public, like the advisory bundle, so the app can warn before sign-in and from a cached copy offline.
-        Returns only aggregate counts per disease (ADR 0018), never farms, farmers, phone numbers or coordinates.
+        Returns only aggregate counts per disease (ADR 0019), never farms, farmers, phone numbers or coordinates.
 
         A diagnosis counts when it has a location, its disease is not a healthy class, and either its status is
         `confident` or an extension officer confirmed it in feedback. An extension officer marking it wrong
@@ -949,7 +949,7 @@ components:
 
     OutbreakAlert:
       type: object
-      description: One disease reported by several farms nearby. Aggregate only (ADR 0018).
+      description: One disease reported by several farms nearby. Aggregate only (ADR 0019).
       required: [class_id, farm_count, distance_band_km, window_days]
       additionalProperties: false
       properties:

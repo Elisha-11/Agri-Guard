@@ -1,4 +1,4 @@
-"""Contract `GET /alerts/nearby/` (ADR 0018)."""
+"""Contract `GET /alerts/nearby/` (ADR 0019)."""
 
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import serializers

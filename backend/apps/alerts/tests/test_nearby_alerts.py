@@ -1,4 +1,4 @@
-"""`GET /alerts/nearby/` (ADR 0018): radius, window, deduplication, confidence filter and privacy."""
+"""`GET /alerts/nearby/` (ADR 0019): radius, window, deduplication, confidence filter and privacy."""
 
 import json
 import uuid

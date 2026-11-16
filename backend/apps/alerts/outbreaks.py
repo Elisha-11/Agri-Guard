@@ -1,4 +1,4 @@
-"""Nearby outbreak counts (ADR 0018, contract `GET /alerts/nearby/`).
+"""Nearby outbreak counts (ADR 0019, contract `GET /alerts/nearby/`).
 
 Rules, in the order they are applied:
 

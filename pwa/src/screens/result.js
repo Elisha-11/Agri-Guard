@@ -81,7 +81,7 @@ export function adviceView(subject) {
 
 /**
  * "N farms within 10 km reported this in the last 7 days", when the disease
- * just diagnosed is an active nearby outbreak (cached alerts, ADR 0018).
+ * just diagnosed is an active nearby outbreak (cached alerts, ADR 0019).
  */
 export function nearbyText(subject) {
   const alert = subject.fromAlert ? null : alertFor(subject.classId);

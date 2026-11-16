@@ -17,7 +17,7 @@
  * and advice. The pause between scans grows with how long a scan takes, so a
  * slow phone is never kept busy, and scanning stops in the background.
  *
- * Nearby outbreak alerts (ADR 0018) sit under the instruction: a short card
+ * Nearby outbreak alerts (ADR 0019) sit under the instruction: a short card
  * from src/alerts.js that works from its cached copy offline. Location is only
  * used after the farmer taps "Turn on nearby alerts".
  */

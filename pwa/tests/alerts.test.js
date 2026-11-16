@@ -1,5 +1,5 @@
 /**
- * Nearby outbreak alerts (src/alerts.js, ADR 0018): the capture-screen card in
+ * Nearby outbreak alerts (src/alerts.js, ADR 0019): the capture-screen card in
  * its online, offline/cached and no-alerts states, the refresh rules (consent,
  * ~1 km rounding, offline keeps the cache), and the post-diagnosis banner.
  */

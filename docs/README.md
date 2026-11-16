@@ -58,7 +58,7 @@ Architecture Decision Records (ADRs) explain **why** something is the way it is.
 | [0015](decisions/0015-code-owners-and-branch-protection.md) | Reviews enforced by CODEOWNERS (owner plus backup); `main` protected | Proposed |
 | [0016](decisions/0016-model-hosting-github-pages.md) | Host model files on GitHub Pages in a separate public repo for now; move to Cloudflare R2 later | Proposed |
 | [0017](decisions/0017-staging-on-render-and-neon.md) | Staging on Render's free plan with a Neon database and the Africa's Talking sandbox | Proposed |
-| [0018](decisions/0018-outbreak-alerts.md) | Warn farmers about nearby outbreaks with aggregate counts only | Proposed |
+| [0019](decisions/0019-outbreak-alerts.md) | Warn farmers about nearby outbreaks with aggregate counts only | Proposed |
 
 To add one, copy [decisions/0000-template.md](decisions/0000-template.md) to the next number.
 

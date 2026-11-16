@@ -1,5 +1,5 @@
 /**
- * Nearby outbreak alerts (ADR 0018, contract GET /api/v1/alerts/nearby/).
+ * Nearby outbreak alerts (ADR 0019, contract GET /api/v1/alerts/nearby/).
  *
  * - Location is used only after the farmer turns alerts on (state.locationConsent),
  *   at coarse accuracy, rounded to 2 decimal places (~1 km) before it leaves the

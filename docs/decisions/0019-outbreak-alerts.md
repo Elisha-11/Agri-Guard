@@ -1,4 +1,4 @@
-# 0018. Warn farmers about nearby outbreaks with aggregate counts only
+# 0019. Warn farmers about nearby outbreaks with aggregate counts only
 
 - **Status:** Proposed (confirm at the Wednesday technical sync, then mark Accepted)
 - **Date:** 2026-11-16

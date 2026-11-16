@@ -1,7 +1,7 @@
 # Nearby outbreak alerts: `GET /api/v1/alerts/nearby/?lat=…&lng=…`
 
 Tells a farmer which diseases several farms near them reported recently. Aggregate counts only. Design reasons
-are in [ADR 0018](../decisions/0018-outbreak-alerts.md); the shape is `NearbyAlerts` in the contract (0.5.0).
+are in [ADR 0019](../decisions/0019-outbreak-alerts.md); the shape is `NearbyAlerts` in the contract (0.5.0).
 
 Code: `backend/apps/alerts/` (`outbreaks.py` has the rules, `views.py` the endpoint).
 

@@ -10,7 +10,7 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
-- Nearby outbreak alerts (ADR 0018, contract 0.5.0): public `GET /api/v1/alerts/nearby/?lat=&lng=` returns, per
+- Nearby outbreak alerts (ADR 0019, contract 0.5.0): public `GET /api/v1/alerts/nearby/?lat=&lng=` returns, per
   disease, how many distinct farms within `OUTBREAK_RADIUS_KM` (10) reported it in the last `OUTBREAK_WINDOW_DAYS`
   (7), once at least `OUTBREAK_MIN_FARMS` (3) did. Counts only confident or officer-confirmed results, each farm
   once, and returns aggregates only. The PWA asks before using location, sends it rounded to ~1 km, caches the

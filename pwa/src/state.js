@@ -18,7 +18,7 @@ const defaults = {
   phone: "",
   signedIn: false,
   // Nearby outbreak alerts use the phone's location only after the farmer
-  // turns them on (docs/offline-sync.md "Location and privacy", ADR 0018).
+  // turns them on (docs/offline-sync.md "Location and privacy", ADR 0019).
   locationConsent: false,
   history: [],
 };
