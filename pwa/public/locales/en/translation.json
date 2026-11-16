@@ -1,6 +1,107 @@
 {
   "app.tagline": "Photograph a leaf to check for disease.",
+
+  "demo.notice": "Demonstration mode: this prediction is simulated, not a real diagnosis.",
+
+  "action.back": "Go back",
+  "action.listen": "Listen",
+  "action.listenUnavailable": "Voice narration is off",
+  "action.expand": "Show more",
+  "action.collapse": "Show less",
+
+  "nav.history": "My checks",
+  "nav.settings": "Settings",
+
+  "capture.instruction": "Hold the phone over the leaf.",
   "capture.button": "Take photo",
+  "capture.upload": "Upload from gallery",
+  "capture.noCamera": "Camera not available. Tap the round button to use your phone camera.",
+
+  "processing.status": "Checking your plant...",
+
+  "result.sure": "{percent}% sure",
+  "result.photoAlt": "The leaf you photographed",
+  "result.unknownDisease": "Unknown",
+  "result.healthyCrop": "Healthy {crop}",
+
+  "severity.none": "None",
+  "severity.mild": "Mild",
+  "severity.moderate": "Moderate",
+  "severity.severe": "Severe",
+  "severity.unknown": "Not rated yet",
+  "severity.aria": "Severity: {level}",
+
+  "advice.treat.title": "Treat now",
+  "advice.treat.body": "Treatment steps from the approved advisory (pending agronomist sign-off)",
+  "advice.treat.full": "Advice from the approved advisory, pending agronomist sign-off.",
+  "advice.prevent.title": "Prevent",
+  "advice.prevent.body": "Use clean farm tools.",
+  "advice.prevent.full": "Advice from the approved advisory, pending agronomist sign-off.",
+  "advice.check.title": "Check again in 7 days",
+  "advice.check.body": "Take another leaf photo.",
+  "advice.check.full": "Advice from the approved advisory, pending agronomist sign-off.",
+  "advice.safety.title": "Safety",
+  "advice.safety.body": "Read the product label and wear protective gear. Pending agronomist sign-off.",
+
+  "uncertain.heading": "We are not sure.",
+  "uncertain.subheading": "Please take another photo.",
+  "uncertain.tips": "Tips",
+  "uncertain.tip.closer": "Stand closer to the leaf",
+  "uncertain.tip.daylight": "Use daylight",
+  "uncertain.tip.flat": "Keep the leaf flat",
+  "uncertain.causes": "Possible causes",
+  "uncertain.noCauses": "No close match was found.",
+  "uncertain.retake": "Take another photo",
+
+  "consult.heading": "Please show this plant to an extension officer.",
+  "consult.subheading": "We could not identify this disease with confidence.",
+  "consult.find": "Find an extension officer",
+  "consult.findPending": "The extension officer directory is not available yet.",
+  "consult.home": "Back to home",
+
+  "rejected.heading": "This photo is hard to read.",
+  "rejected.subheading": "Please take the photo again.",
+  "rejected.blurry": "Too blurry",
+  "rejected.dark": "Too dark",
+  "rejected.small": "Too small",
+  "rejected.retake": "Retake photo",
+
+  "history.title": "My checks",
+  "history.empty": "You have not checked a plant yet.",
+  "history.newPhoto": "Take new photo",
+
+  "settings.title": "Settings",
+  "settings.language": "Language",
+  "settings.voice": "Voice narration",
+  "settings.phone": "Phone number",
+  "settings.phoneUnset": "Not set",
+  "settings.signOut": "Sign out",
+  "settings.version": "AgriGuard AI · Version {version}",
+  "settings.api": "API:",
+  "settings.apiUnreachable": "not reachable",
+
+  "language.title": "Choose your language",
+  "language.done": "Done",
+
+  "signIn.heading": "Sign in to AgriGuard",
+  "signIn.explain": "We will send a code to your phone by SMS.",
+  "signIn.placeholder": "97 000 0000",
+  "signIn.phoneLabel": "Phone number, without the country code",
+  "signIn.error": "Enter your 9-digit phone number.",
+  "signIn.send": "Send code",
+
+  "code.heading": "Enter your code",
+  "code.sentTo": "We sent a code to {phone}.",
+  "code.digitLabel": "Digit {position}",
+  "code.expires": "Code expires in {time}",
+  "code.expired": "That code has expired. Send a new one.",
+  "code.resend": "Send again",
+  "code.cooldown": "You can ask for a new code in {seconds}s",
+  "code.incomplete": "Enter all six digits.",
+  "code.wrong": "That code is not correct.",
+  "code.signIn": "Sign in",
+  "code.demoNote": "No SMS service is connected yet. Your code is {code}.",
+
   "status.online": "Online",
   "status.offline": "Offline"
 }

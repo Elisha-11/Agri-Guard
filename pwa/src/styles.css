@@ -1,11 +1,1317 @@
+/*
+ * AgriGuard AI — screen styles.
+ *
+ * Values here are taken from the AgriGuard Screens Figma file
+ * (https://www.figma.com/design/pRrAyJzsQUKi8IvqJO67pv/AgriGuard-Screens).
+ * Frames are drawn at 360 x 800; screens scale fluidly and are capped at
+ * --ag-screen-max so the layout stays phone-shaped on a desktop browser.
+ *
+ * Bootstrap supplies the reset; everything screen-specific lives here so the
+ * design can be matched exactly.
+ */
+
 :root {
-  --ag-green: #1f6f3f;
+  /* brand greens */
+  --ag-green: #0f613b; /* primary — headings, Listen button, Done button */
+  --ag-green-deep: #09582d; /* capture screen background */
+  --ag-green-dark: #166534; /* retake button (rejected) */
+  --ag-green-mid: #16a34a; /* take-another-photo button (uncertain), checks */
+  --ag-green-sage: #4f7d4b; /* consult screen buttons */
+  --ag-green-progress: #2d7a46; /* processing progress fill */
+  --ag-green-switch: #237548; /* settings toggle track, on */
+
+  /* surfaces */
+  --ag-bg: #f8faf9;
+  --ag-bg-warm: #f9faf7;
+  --ag-bg-cream: #fafaf4;
+  --ag-surface: #ffffff;
+  --ag-border: #e5e7eb;
+  --ag-border-soft: #e3ebe5;
+  --ag-divider: #edf1ee;
+
+  /* text */
+  --ag-ink: #1f2937;
+  --ag-ink-strong: #111827;
+  --ag-ink-heading: #163d2b;
+  --ag-ink-row: #233b2d;
+  --ag-muted: #6b7280;
+  --ag-muted-body: #47574d;
+  --ag-muted-row: #68746d;
+
+  /* accents */
+  --ag-mint: #dcfce7;
+  --ag-mint-soft: #d1fae5;
+  --ag-mint-pale: #e8f2e7;
+  --ag-track: #e4efe6;
+  --ag-amber-text: #914d05;
+  --ag-amber-bg: #fff6e6;
+  --ag-amber-border: #ebd5af;
+  --ag-danger: #922d2d;
+
+  /* severity bar zones */
+  --ag-sev-green: #10b981;
+  --ag-sev-amber: #d97706;
+  --ag-sev-red: #ef4444;
+
+  /* The Figma file is set in Inter. It is not bundled, so the system UI stack
+     stands in for it — metrically close on the Android devices this PWA
+     targets, and no font download on a slow link. */
+  --ag-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+
+  --ag-screen-max: 420px;
 }
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   min-height: 100dvh;
+  margin: 0;
+  font-family: var(--ag-font);
+  background: #e9ecee; /* letterbox around the phone-width column on desktop */
+  color: var(--ag-ink);
 }
-.btn-capture {
-  /* big tap target for low-literacy, one-thumb use */
-  min-height: 72px;
-  font-size: 1.25rem;
+
+#app {
+  min-height: 100dvh;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+.ag-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--ag-screen-max);
+  min-height: 100dvh;
+  margin-inline: auto;
+  background: var(--ag-bg);
+  overflow-x: hidden;
+}
+
+/* Content that scrolls with the page, under an action button that stays
+   pinned to the bottom of the viewport. Sticky rather than a fixed-height
+   inner scroller: it needs no viewport maths and behaves when the on-screen
+   keyboard opens. */
+.ag-screen__scroll {
+  flex: 1 1 auto;
+}
+
+.ag-screen__footer {
+  position: sticky;
+  bottom: 0;
+  flex: 0 0 auto;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: var(--ag-bg);
+}
+
+/* ------------------------------------------------------------- controls -- */
+
+.ag-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+.ag-back--sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+/* Settings uses a borderless back arrow on the page background. */
+.ag-back--bare {
+  background: none;
+  border: none;
+}
+
+.ag-back:active {
+  background: var(--ag-divider);
+}
+
+.ag-btn {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 64px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ag-green);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.ag-btn:active {
+  filter: brightness(0.93);
+}
+
+.ag-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ag-btn--mid {
+  background: var(--ag-green-mid);
+}
+
+.ag-btn--dark {
+  background: var(--ag-green-dark);
+}
+
+.ag-btn--sage {
+  background: var(--ag-green-sage);
+  border-radius: 12px;
+}
+
+.ag-btn--link {
+  height: 48px;
+  font-size: 16px;
+  color: var(--ag-green-sage);
+  background: none;
+  border-radius: 12px;
+}
+
+/* Demonstration-mode notice. The model is a stub: every prediction shown in
+   this build is simulated, and the banner must stay until real inference
+   ships (see docs/model-output.md and pwa/src/inference/diagnose.js). */
+.ag-demo-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ag-amber-text);
+  background: var(--ag-amber-bg);
+  border-bottom: 1px solid var(--ag-amber-border);
+}
+
+/* Connection indicator. Only shown while the device is offline — a standing
+   "Online" badge is noise. The app keeps working either way; this just
+   explains why the API-backed bits are quiet. */
+.ag-offline {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 20;
+  margin: 0;
+  padding: 4px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  background: var(--ag-muted-body);
+  border-radius: 0 0 10px 10px;
+  transform: translateX(-50%);
+}
+
+.ag-offline[data-offline="false"] {
+  display: none;
+}
+
+/* On the screens that pad their own edges the notice still runs full bleed. */
+.ag-uncertain > .ag-demo-note {
+  margin: -24px -24px 0;
+}
+
+.ag-consult > .ag-demo-note {
+  margin: -56px -24px 0;
+}
+
+.ag-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------- 1. Capture ------ */
+
+.ag-capture {
+  justify-content: space-between;
+  padding: 24px 24px 32px;
+  background: var(--ag-green-deep);
+}
+
+.ag-capture__nav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* Not in Figma: the capture screen is the app's home, and History and
+   Settings have no other entry point, so they are reached from here. */
+.ag-capture__navbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+.ag-capture__navbtn img {
+  filter: brightness(0) invert(1);
+}
+
+.ag-capture__navbtn:active {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.ag-capture__instruction {
+  width: 100%;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+.ag-capture__preview {
+  position: relative;
+  height: 520px;
+  max-height: 58vh;
+  overflow: hidden;
+  background: #1a1a1a;
+  border-radius: 24px;
+}
+
+.ag-capture__preview video,
+.ag-capture__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-capture__guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 280px;
+  max-width: 76%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 3px dashed #fff;
+  pointer-events: none;
+}
+
+.ag-capture__hint {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #fff;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 10px;
+}
+
+.ag-capture__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.ag-capture__shutter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  background: #fff;
+  border: none;
+  border-radius: 44px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  cursor: pointer;
+}
+
+.ag-capture__shutter:active {
+  transform: scale(0.96);
+}
+
+.ag-capture__upload {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 56px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ag-green-deep);
+  background: #fff;
+  border: none;
+  border-radius: 28px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------- 2. Processing ------ */
+
+.ag-processing {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ag-processing__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+.ag-processing__status {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+}
+
+.ag-processing__text {
+  width: 100%;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ag-green);
+  text-align: center;
+}
+
+.ag-processing__track {
+  width: 64px;
+  height: 4px;
+  overflow: hidden;
+  background: var(--ag-track);
+  border-radius: 2px;
+}
+
+.ag-processing__bar {
+  width: 28px;
+  height: 4px;
+  background: var(--ag-green-progress);
+  border-radius: 2px;
+  animation: ag-progress 1.1s ease-in-out infinite;
+}
+
+@keyframes ag-progress {
+  0% {
+    transform: translateX(-28px);
+  }
+  100% {
+    transform: translateX(64px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-processing__bar {
+    animation: none;
+    transform: translateX(18px);
+  }
+}
+
+/* ------------------------------------------------------- 3. Result ------- */
+
+.ag-result__photo {
+  position: relative;
+  height: 320px;
+  margin: 16px;
+  overflow: hidden;
+  background: var(--ag-border);
+  border-radius: 24px;
+}
+
+.ag-result__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-result__back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.ag-result__body {
+  padding: 0 16px 16px;
+}
+
+.ag-result__name {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ag-ink);
+  overflow-wrap: break-word;
+}
+
+.ag-result__sure {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ag-green);
+}
+
+/* severity bar: 220 x 12 track, three zones, marker at the severity position */
+.ag-severity {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin: 12px 0 0;
+}
+
+.ag-severity__track {
+  position: relative;
+  flex: 0 1 220px;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.ag-severity__zones {
+  display: flex;
+  height: 100%;
+}
+
+.ag-severity__zone--green {
+  flex: 73;
+  background: var(--ag-sev-green);
+}
+
+.ag-severity__zone--amber {
+  flex: 74;
+  background: var(--ag-sev-amber);
+}
+
+.ag-severity__zone--red {
+  flex: 73;
+  background: var(--ag-sev-red);
+}
+
+.ag-severity__marker {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 2px solid var(--ag-ink);
+  border-radius: 6px;
+  transform: translateX(-50%);
+}
+
+.ag-severity__label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ag-amber-text);
+  white-space: nowrap;
+}
+
+.ag-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.ag-section {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 12px 8px;
+  font-family: inherit;
+  text-align: left;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.ag-section__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--ag-mint);
+  border-radius: 12px;
+}
+
+.ag-section__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ag-section__title {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ag-ink);
+}
+
+.ag-section__body {
+  display: block;
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--ag-muted-body);
+}
+
+.ag-section__toggle {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 2px -6px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ag-section__toggle img {
+  transition: transform 0.18s ease;
+}
+
+.ag-section[data-collapsed="true"] .ag-section__body {
+  display: none;
+}
+
+.ag-section[data-collapsed="true"] .ag-section__toggle img {
+  transform: rotate(180deg);
+}
+
+/* ------------------------------------------- 3b. Result Uncertain -------- */
+
+.ag-uncertain {
+  gap: 12px;
+  padding: 24px;
+  background: var(--ag-bg-warm);
+}
+
+.ag-uncertain__photo {
+  height: 240px;
+  overflow: hidden;
+  background: var(--ag-border);
+  border-radius: 16px;
+}
+
+.ag-uncertain__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-heading-lg {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ag-ink);
+}
+
+.ag-subtext {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ag-muted);
+}
+
+.ag-card {
+  padding: 16px 20px;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 16px;
+}
+
+.ag-card__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ag-ink);
+}
+
+.ag-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ag-tips li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--ag-ink);
+}
+
+.ag-tips__check {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--ag-mint);
+  border-radius: 12px;
+}
+
+.ag-causes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.ag-causes__row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ag-causes__name {
+  font-weight: 500;
+  color: var(--ag-ink);
+}
+
+.ag-causes__pct {
+  font-weight: 600;
+  color: var(--ag-green-mid);
+}
+
+/* --------------------------------------------- 3c. Result Consult -------- */
+
+.ag-consult {
+  gap: 24px;
+  padding: 56px 24px 40px;
+  background: var(--ag-bg-warm);
+}
+
+.ag-consult__image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 240px;
+  background: var(--ag-border);
+  border-radius: 16px;
+}
+
+.ag-consult__text {
+  text-align: center;
+}
+
+.ag-consult__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: auto;
+}
+
+/* -------------------------------------------- 3d. Result Rejected -------- */
+
+.ag-rejected {
+  justify-content: space-between;
+  padding: 56px 24px 32px;
+  background: var(--ag-bg-cream);
+}
+
+.ag-rejected__top {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ag-rejected__illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 144px;
+}
+
+.ag-rejected__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  background: var(--ag-mint-soft);
+  border-radius: 60px;
+}
+
+.ag-rejected__heading {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ag-ink-strong);
+}
+
+.ag-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ag-reason {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ag-ink-strong);
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 12px;
+}
+
+/* A reason the photo check did not flag is dimmed rather than removed, so the
+   list keeps the order the design shows. */
+.ag-reason[data-flagged="false"] {
+  opacity: 0.4;
+}
+
+.ag-reason__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--ag-mint-pale);
+  border-radius: 20px;
+}
+
+.ag-rejected__bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ------------------------------------------------------ 4. Advice -------- */
+
+.ag-advice__photo {
+  position: relative;
+  height: 200px;
+  margin: 16px;
+  overflow: hidden;
+  background: var(--ag-border);
+  border-radius: 24px;
+}
+
+.ag-advice__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-advice__body {
+  padding: 0 16px 16px;
+}
+
+.ag-advice__name {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  color: var(--ag-green);
+}
+
+.ag-advice__card {
+  margin-top: 12px;
+  padding: 6px 8px 12px;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 16px;
+}
+
+.ag-advice__head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ag-advice__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--ag-mint);
+  border-radius: 8px;
+}
+
+.ag-advice__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--ag-green);
+}
+
+.ag-advice__text {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--ag-muted-body);
+}
+
+.ag-advice__card--safety {
+  background: var(--ag-amber-bg);
+  border-color: var(--ag-amber-border);
+}
+
+.ag-advice__card--safety .ag-advice__icon {
+  background: none;
+}
+
+.ag-advice__card--safety .ag-advice__title {
+  color: var(--ag-amber-text);
+}
+
+/* ----------------------------------------------------- 5. History -------- */
+
+.ag-history__head {
+  padding: 24px 16px 0;
+}
+
+.ag-history__title {
+  margin: 16px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  color: var(--ag-green);
+}
+
+.ag-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.ag-history__card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  height: 92px;
+  padding: 0 12px;
+  font-family: inherit;
+  text-align: left;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.ag-history__thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  background: var(--ag-border);
+  border-radius: 12px;
+}
+
+.ag-history__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-history__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ag-history__name {
+  display: block;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--ag-ink);
+  overflow-wrap: break-word;
+}
+
+.ag-history__date {
+  display: block;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ag-muted);
+}
+
+.ag-history__empty {
+  margin: 48px 16px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------- 6. Settings -------- */
+
+.ag-settings {
+  padding: 28px 20px 24px;
+}
+
+.ag-settings__title {
+  margin: 24px 0 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  color: var(--ag-ink-heading);
+}
+
+.ag-settings__group {
+  margin-top: 24px;
+  overflow: hidden;
+  background: var(--ag-surface);
+  border-radius: 20px;
+}
+
+.ag-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  min-height: 80px;
+  padding: 16px;
+  font-family: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--ag-divider);
+  cursor: pointer;
+}
+
+.ag-row:first-child {
+  border-top: none;
+}
+
+.ag-row__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.ag-row__label {
+  display: block;
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ag-ink-row);
+}
+
+.ag-row__value {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ag-muted-row);
+}
+
+.ag-row--stacked {
+  min-height: 96px;
+  align-items: flex-start;
+}
+
+.ag-row--stacked .ag-row__icon {
+  margin-top: 2px;
+}
+
+.ag-row--stacked .ag-row__value {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.ag-row__stack {
+  flex: 1 1 auto;
+}
+
+.ag-row--signout .ag-row__label {
+  font-weight: 600;
+  color: var(--ag-danger);
+}
+
+/* The Figma file ships the toggle only in its "on" state; it is rebuilt here
+   in CSS at the same metrics (48 x 28, 11px thumb) so it can show both. */
+.ag-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  background: #c7d0ca;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.ag-switch[aria-checked="true"] {
+  background: var(--ag-green-switch);
+}
+
+.ag-switch::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 11px;
+  transition: transform 0.18s ease;
+  content: "";
+}
+
+.ag-switch[aria-checked="true"]::after {
+  transform: translateX(20px);
+}
+
+.ag-settings__version {
+  margin: auto 0 0;
+  padding-top: 32px;
+  font-size: 16px;
+  color: var(--ag-muted-row);
+  text-align: center;
+}
+
+.ag-settings__api {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ag-muted-row);
+  text-align: center;
+}
+
+/* ---------------------------------------------------- 7. Language -------- */
+
+.ag-language__head {
+  padding: 24px 16px 0;
+}
+
+.ag-language__title {
+  margin: 24px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 36px;
+  color: var(--ag-green);
+}
+
+.ag-language__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 40px 0 0;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.ag-language__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 80px;
+  padding: 0 20px;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ag-ink);
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border-soft);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.ag-language__option[aria-checked="true"] {
+  font-weight: 600;
+  color: var(--ag-green);
+  border: 2px solid var(--ag-green);
+}
+
+/* --------------------------------------------- 8/9. Sign in + code ------- */
+
+.ag-auth {
+  padding: 24px 16px 16px;
+}
+
+.ag-auth__logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 40px auto 0;
+}
+
+.ag-auth__heading {
+  margin: 40px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+  color: var(--ag-green);
+}
+
+.ag-auth__sub {
+  margin: 16px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ag-muted);
+}
+
+.ag-phone {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  margin-top: 24px;
+  padding: 0 16px;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border-soft);
+  border-radius: 16px;
+}
+
+.ag-phone__prefix {
+  font-size: 20px;
+  color: var(--ag-ink);
+}
+
+.ag-phone__divider {
+  width: 1px;
+  height: 28px;
+  margin: 0 14px;
+  background: var(--ag-border);
+}
+
+.ag-phone__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 20px;
+  color: var(--ag-ink);
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.ag-phone:focus-within {
+  border-color: var(--ag-green);
+  box-shadow: 0 0 0 2px rgba(15, 97, 59, 0.18);
+}
+
+.ag-error {
+  min-height: 24px;
+  margin: 8px 0 0;
+  font-size: 16px;
+  color: var(--ag-danger);
+}
+
+.ag-code {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.ag-code__digit {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 48px;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ag-ink);
+  text-align: center;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border-soft);
+  border-radius: 10px;
+  outline: none;
+}
+
+.ag-code__digit:focus {
+  border: 2px solid var(--ag-green);
+}
+
+.ag-auth__meta {
+  margin: 24px 0 0;
+  font-size: 16px;
+  color: var(--ag-muted);
+}
+
+.ag-auth__resend {
+  width: 120px;
+  height: 48px;
+  margin-top: 16px;
+  padding: 0;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ag-green);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ag-auth__resend:disabled {
+  color: var(--ag-muted);
+  cursor: default;
+}
+
+/* No SMS gateway is wired up yet, so the generated code is shown on screen. */
+.ag-auth__devnote {
+  margin: 16px 0 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ag-amber-text);
+  background: var(--ag-amber-bg);
+  border: 1px solid var(--ag-amber-border);
+  border-radius: 10px;
 }
