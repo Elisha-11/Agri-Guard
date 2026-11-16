@@ -18,6 +18,7 @@ import { initI18n } from "./i18n.js";
 import { state } from "./state.js";
 import { registerServiceWorker, mountConnectionIndicator } from "./offline.js";
 import { startAdvisorySync } from "./advisory.js";
+import { startAlertSync } from "./alerts.js";
 import { startModelUpdates } from "./inference/model.js";
 
 import * as capture from "./screens/capture.js";
@@ -64,5 +65,6 @@ initI18n(state.language).then(() => {
   start(document.querySelector("#app"));
   mountConnectionIndicator();
   startAdvisorySync();
+  startAlertSync();
   startModelUpdates();
 });

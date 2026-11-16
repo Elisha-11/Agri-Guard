@@ -77,14 +77,18 @@ export function render(params = {}) {
       ${demoNote()}
 
       <div class="ag-screen__scroll">
-        <div class="ag-advice__photo">
-          <img src="${esc(subject.photo)}" alt="${esc(t("result.photoAlt"))}" />
-          <span class="ag-result__back">${backButton()}</span>
-        </div>
+        ${
+          subject.photo
+            ? `<div class="ag-advice__photo">
+                <img src="${esc(subject.photo)}" alt="${esc(t("result.photoAlt"))}" />
+                <span class="ag-result__back">${backButton()}</span>
+              </div>`
+            : `<div class="ag-advice__nophoto">${backButton()}</div>`
+        }
 
         <div class="ag-advice__body">
           <h1 class="ag-advice__name">${esc(name)}</h1>
-          ${severityBar(severity)}
+          ${subject.severity == null ? "" : severityBar(severity)}
 
           ${content}
         </div>
@@ -109,6 +113,7 @@ export function mount(root, params = {}) {
   }
 
   bindBack(root, () => back(subject.fromHistory ? "/history" : "/capture"));
+  // From an alert, "back" returns to the capture screen it was opened from.
 
   if (params.section) {
     const target = root.querySelector(`[data-card="${CSS.escape(params.section)}"]`);

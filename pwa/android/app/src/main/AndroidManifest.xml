@@ -41,4 +41,8 @@
     <!-- Live preview on the capture screen (getUserMedia). Capacitor asks for it at runtime. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Nearby outbreak alerts (ADR 0018): rough location only, rounded to ~1 km before it is sent.
+         Asked for only after the farmer taps "Turn on nearby alerts". No precise GPS. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
 </manifest>

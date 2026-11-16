@@ -1,1 +1,3 @@
-{}
+{
+  "_TODO_translate": "TODO(Bemba): translate the outbreak-alert keys from en/translation.json: alerts.title, alerts.item, alerts.none, alerts.loading, alerts.neverFetchedOffline, alerts.unavailable, alerts.offline, alerts.offExplain, alerts.enable, alerts.listen, alerts.more, alerts.updatedJustNow, alerts.updatedMinutes, alerts.updatedHours, alerts.updatedDays, alerts.afterDiagnosis. Use a native speaker and the agronomist review; do not machine-translate. Untranslated keys fall back to English."
+}

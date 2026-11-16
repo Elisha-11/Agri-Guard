@@ -18,6 +18,7 @@ import { go, back } from "../router.js";
 import { session, findHistoryEntry } from "../state.js";
 import { displayName, severityDisplay, confidencePercent } from "../disease.js";
 import { adviceFor, adviceCards, advisoryMessage } from "../advisory.js";
+import { alertFor } from "../alerts.js";
 import { speak, stopSpeaking } from "../speech.js";
 
 const SECTION_ICONS = { treat: icons.droplet, prevent: icons.shield, check: icons.calendar };
@@ -27,6 +28,19 @@ const SECTION_ICONS = { treat: icons.droplet, prevent: icons.shield, check: icon
  * Returns null when neither is available.
  */
 export function resolveSubject(params = {}) {
+  // Opened from a nearby-outbreak alert: a disease, but no photo or diagnosis.
+  if (params.classId) {
+    return {
+      classId: params.classId,
+      name: displayName(params.classId),
+      confidence: null,
+      severity: null,
+      photo: null,
+      fromHistory: false,
+      fromAlert: true,
+    };
+  }
+
   if (params.entryId) {
     const entry = findHistoryEntry(params.entryId);
     if (!entry) return null;
@@ -63,6 +77,30 @@ export function adviceView(subject) {
     cards: adviceCards(advice),
     name: advice?.local_name || advice?.name || subject.name,
   };
+}
+
+/**
+ * "N farms within 10 km reported this in the last 7 days", when the disease
+ * just diagnosed is an active nearby outbreak (cached alerts, ADR 0018).
+ */
+export function nearbyText(subject) {
+  const alert = subject.fromAlert ? null : alertFor(subject.classId);
+  return alert
+    ? t("alerts.afterDiagnosis", {
+        count: alert.farm_count,
+        km: alert.distance_band_km,
+        days: alert.window_days,
+      })
+    : "";
+}
+
+function nearbyBanner(subject) {
+  const text = nearbyText(subject);
+  return text
+    ? `<p class="ag-nearby" role="note"><img src="${
+        icons.warning
+      }" alt="" width="18" height="18" /><span>${esc(text)}</span></p>`
+    : "";
 }
 
 /** Collapsed card text: the first step, or the "not checked yet" message. */
@@ -135,6 +173,7 @@ export function render(params = {}) {
           </p>
 
           ${severityBar(severity)}
+          ${nearbyBanner(subject)}
 
           <div class="ag-sections">${cardsHtml(view.cards)}</div>
         </div>
@@ -191,6 +230,7 @@ export function mount(root, params = {}) {
     const spoken = speak([
       view.name,
       t("result.sure", { percent: confidencePercent(subject.confidence) }),
+      nearbyText(subject),
       ...(view.cards.length
         ? view.cards.flatMap((section) => [section.title, section.steps[0]])
         : [advisoryMessage("no_advice")]),

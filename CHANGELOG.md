@@ -10,6 +10,16 @@ On release, Unreleased is renamed to the version and date, and `main` is tagged.
 
 ### Added
 
+- Nearby outbreak alerts (ADR 0018, contract 0.5.0): public `GET /api/v1/alerts/nearby/?lat=&lng=` returns, per
+  disease, how many distinct farms within `OUTBREAK_RADIUS_KM` (10) reported it in the last `OUTBREAK_WINDOW_DAYS`
+  (7), once at least `OUTBREAK_MIN_FARMS` (3) did. Counts only confident or officer-confirmed results, each farm
+  once, and returns aggregates only. The PWA asks before using location, sends it rounded to ~1 km, caches the
+  alerts for offline use, shows them on the capture screen and after a matching diagnosis, reads them aloud, and
+  links each to the disease's published advice.
+- PWA: on-device diagnosis with the published TensorFlow.js model (bundled release, verified over-the-air
+  updates), live scanning on the capture screen, and treatment advice only from the published advisory bundle.
+- Android app (Capacitor 8) wrapping the PWA, with camera and coarse-location permissions.
+
 - Staging server: `render.yaml` deploys the API to Render's free plan (Frankfurt) on every merge to `main`, with a
   Neon PostgreSQL database and the Africa's Talking SMS sandbox. Migrations and `load_taxonomy` run at start. See
   `docs/backend/staging.md` and ADR 0017.

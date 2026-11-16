@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.diagnoses",
     "apps.releases",
+    "apps.alerts",
 ]
 
 # Farmers sign in with phone + SMS code, so the user model is keyed on phone (ADR 0003).
@@ -112,6 +113,13 @@ REST_FRAMEWORK = {
     # Every error body uses the contract's Error shape {code, message, fields}.
     "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
 }
+
+# Outbreak alerts (ADR 0018): a disease becomes an alert when at least OUTBREAK_MIN_FARMS distinct farms
+# within OUTBREAK_RADIUS_KM reported it in the last OUTBREAK_WINDOW_DAYS days. MIN_FARMS is also the
+# privacy floor: below 3, a count could point at one household.
+OUTBREAK_RADIUS_KM = config("OUTBREAK_RADIUS_KM", default=10, cast=int)
+OUTBREAK_WINDOW_DAYS = config("OUTBREAK_WINDOW_DAYS", default=7, cast=int)
+OUTBREAK_MIN_FARMS = config("OUTBREAK_MIN_FARMS", default=3, cast=int)
 
 # Tokens (ADR 0006). Farmers can be offline for weeks, so refresh tokens are long-lived; each one works once
 # (rotation + blacklist), so a stolen refresh token stops working as soon as the farmer's phone uses its copy.

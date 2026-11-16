@@ -16,13 +16,26 @@
  * hint for framing the leaf; the farmer still takes a photo for the result
  * and advice. The pause between scans grows with how long a scan takes, so a
  * slow phone is never kept busy, and scanning stops in the background.
+ *
+ * Nearby outbreak alerts (ADR 0018) sit under the instruction: a short card
+ * from src/alerts.js that works from its cached copy offline. Location is only
+ * used after the farmer taps "Turn on nearby alerts".
  */
 
 import { icons, photos } from "../icons.js";
 import { t } from "../i18n.js";
 import { esc } from "../ui.js";
 import { go } from "../router.js";
-import { setSessionImage } from "../state.js";
+import { setSessionImage, state } from "../state.js";
+import {
+  alertsCardHtml,
+  alertsSpeech,
+  cachedAlerts,
+  alertsUnavailable,
+  refreshAlerts,
+  ALERTS_UPDATED,
+} from "../alerts.js";
+import { speak, stopSpeaking } from "../speech.js";
 import { setDarkStatusBar } from "../native.js";
 import { loadModel } from "../inference/model.js";
 import { diagnose } from "../inference/diagnose.js";
@@ -31,6 +44,15 @@ import { displayName, confidencePercent } from "../disease.js";
 /** Shortest pause between live scans, and the multiple of the last scan's time. */
 const LIVE_MIN_GAP_MS = 1200;
 const LIVE_GAP_FACTOR = 2;
+
+function alertsCard() {
+  return alertsCardHtml({
+    consent: state.locationConsent,
+    cache: cachedAlerts(),
+    online: navigator.onLine,
+    unavailable: alertsUnavailable(),
+  });
+}
 
 export function render() {
   return `
@@ -55,6 +77,7 @@ export function render() {
           </button>
         </nav>
         <h1 class="ag-capture__instruction">${esc(t("capture.instruction"))}</h1>
+        <div id="ag-alerts">${alertsCard()}</div>
       </div>
 
       <div class="ag-capture__preview">
@@ -228,7 +251,46 @@ export function mount(root) {
   // here is retried when the photo is taken, so it is not reported now.
   loadModel().catch(() => {});
 
+  // ---- nearby outbreak alerts -------------------------------------------
+  const alertsBox = root.querySelector("#ag-alerts");
+  let mounted = true;
+
+  function drawAlerts() {
+    if (!mounted) return;
+    alertsBox.innerHTML = alertsCard();
+  }
+
+  alertsBox.addEventListener("click", async (event) => {
+    if (event.target.closest("#ag-alerts-enable")) {
+      state.locationConsent = true; // the farmer's explicit choice
+      drawAlerts();
+      await refreshAlerts(); // the OS asks for location permission here
+      drawAlerts();
+      return;
+    }
+    if (event.target.closest("#ag-alerts-listen")) {
+      speak(alertsSpeech(cachedAlerts()));
+      return;
+    }
+    const item = event.target.closest("[data-alert]");
+    if (item) {
+      stopCamera();
+      go("/advice", { classId: item.dataset.alert });
+    }
+  });
+
+  // Refreshing is app-wide (startAlertSync in main.js); this card just redraws.
+  const onConnectivity = () => drawAlerts();
+  window.addEventListener("online", onConnectivity);
+  window.addEventListener("offline", onConnectivity);
+  window.addEventListener(ALERTS_UPDATED, onConnectivity);
+
   return () => {
+    mounted = false;
+    window.removeEventListener("online", onConnectivity);
+    window.removeEventListener("offline", onConnectivity);
+    window.removeEventListener(ALERTS_UPDATED, onConnectivity);
+    stopSpeaking();
     stopCamera();
     setDarkStatusBar(false);
   };

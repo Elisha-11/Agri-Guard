@@ -11,6 +11,7 @@ import { t, languageLabel } from "../i18n.js";
 import { esc, backButton, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
 import { apiUrl } from "../native.js";
+import { clearAlerts } from "../alerts.js";
 import { currentModelVersion, modelUpdateStatus } from "../inference/model.js";
 import { state, signOut } from "../state.js";
 import { stopSpeaking } from "../speech.js";
@@ -94,6 +95,7 @@ export function mount(root) {
 
   root.querySelector("#ag-signout").addEventListener("click", () => {
     signOut();
+    clearAlerts();
     go("/sign-in");
   });
 

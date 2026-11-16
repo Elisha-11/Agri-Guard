@@ -17,6 +17,9 @@ const defaults = {
   voiceNarration: true,
   phone: "",
   signedIn: false,
+  // Nearby outbreak alerts use the phone's location only after the farmer
+  // turns them on (docs/offline-sync.md "Location and privacy", ADR 0018).
+  locationConsent: false,
   history: [],
 };
 
@@ -42,6 +45,7 @@ function save() {
         voiceNarration: persisted.voiceNarration,
         phone: persisted.phone,
         signedIn: persisted.signedIn,
+        locationConsent: persisted.locationConsent,
         history: persisted.history,
       }),
     );
@@ -81,6 +85,14 @@ export const state = {
   },
   set signedIn(value) {
     persisted.signedIn = Boolean(value);
+    save();
+  },
+
+  get locationConsent() {
+    return persisted.locationConsent;
+  },
+  set locationConsent(value) {
+    persisted.locationConsent = Boolean(value);
     save();
   },
 
@@ -131,5 +143,7 @@ export function clearHistory() {
 export function signOut() {
   persisted.signedIn = false;
   persisted.phone = "";
+  // A shared phone: the next person must opt in to location themselves.
+  persisted.locationConsent = false;
   save();
 }

@@ -104,5 +104,22 @@
   "code.demoNote": "No SMS service is connected yet. Your code is {code}.",
 
   "status.online": "Online",
-  "status.offline": "Offline"
+  "status.offline": "Offline",
+
+  "alerts.title": "Disease alerts near you",
+  "alerts.item": "{name}: {count} farms within {km} km in the last {days} days",
+  "alerts.none": "No disease alerts within {km} km in the last {days} days.",
+  "alerts.loading": "Checking for disease alerts near you…",
+  "alerts.neverFetchedOffline": "Disease alerts will appear when you are online.",
+  "alerts.unavailable": "Disease alerts are not available yet. We will keep checking.",
+  "alerts.offline": "offline",
+  "alerts.offExplain": "Get warned when a disease is spreading on farms near you. We use your rough location (about 1 km), never your exact farm.",
+  "alerts.enable": "Turn on nearby alerts",
+  "alerts.listen": "Listen to the alerts",
+  "alerts.more": "and {count} more",
+  "alerts.updatedJustNow": "Updated just now",
+  "alerts.updatedMinutes": "Updated {count} minutes ago",
+  "alerts.updatedHours": "Updated {count} hours ago",
+  "alerts.updatedDays": "Updated {count} days ago",
+  "alerts.afterDiagnosis": "{count} farms within {km} km reported this in the last {days} days."
 }
