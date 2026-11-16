@@ -1,0 +1,5 @@
+source,class_id,confirm,note
+Healthy,maize__healthy,,
+MSV,maize__streak_virus,,
+Grey Leaf Spot,maize__grey_leaf_spot,,
+Blight,maize__northern_leaf_blight,agronomist,"YOLO name ""Blight""; the Zenodo description says Northern Leaf Blight. Confirm it isn't southern leaf blight"

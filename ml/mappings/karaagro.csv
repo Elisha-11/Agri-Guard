@@ -1,0 +1,4 @@
+source,class_id,confirm,note
+healthy,maize__healthy,,Dataset label "Healthy"
+maize_streak,maize__streak_virus,,Dataset label "Maize Streak Virus"
+faw,,agronomist,Fall armyworm damage (pest). Not a class yet: class-taxonomy.md question 4. Kept aside in unmapped/

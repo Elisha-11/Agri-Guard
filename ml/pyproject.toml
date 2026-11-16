@@ -5,6 +5,8 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+# Downloaded datasets (ml/data/, git-ignored) may contain notebooks and scripts: never lint or rewrite them.
+extend-exclude = ["data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
@@ -12,3 +14,4 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.black]
 line-length = 110
 target-version = ["py311"]
+extend-exclude = "^/data/"

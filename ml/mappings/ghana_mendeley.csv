@@ -1,0 +1,8 @@
+source,class_id,confirm,note
+healthy,maize__healthy,,
+streak virus,maize__streak_virus,,
+leaf blight,maize__northern_leaf_blight,agronomist,"""Leaf blight"" could be northern or southern leaf blight"
+leaf spot,maize__grey_leaf_spot,agronomist,"""Leaf spot"" may include spots other than grey leaf spot (e.g. curvularia)"
+fall armyworm,,agronomist,Pest damage; not a class yet (class-taxonomy.md question 4)
+grasshopper,,,Pest damage; no class
+leaf beetle,,,Pest damage; no class
