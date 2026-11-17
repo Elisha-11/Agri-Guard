@@ -15,6 +15,7 @@
 
 import { apiUrl } from "./native.js";
 import { currentLanguage, t } from "./i18n.js";
+import { draftAdviceFor } from "./draft-advice.js";
 
 const KEY = (lang) => `agriguard.advisory.${lang}`;
 
@@ -81,7 +82,8 @@ export function adviceFor(classId) {
     const disease = read(lang)?.bundle?.diseases?.find((entry) => entry.class_id === classId);
     if (disease) return disease;
   }
-  return null;
+  // DRAFT, not agronomist-reviewed (src/draft-advice.js): demo build only.
+  return draftAdviceFor(classId);
 }
 
 /** A fixed message from the bundle's `ui` (no_advice, uncertain, consult, rejected). */

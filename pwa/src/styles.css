@@ -1468,3 +1468,23 @@ body {
   border: 1px solid var(--ag-amber-border);
   border-radius: 10px;
 }
+
+/* Draft advice label (src/draft-advice.js): not agronomist-reviewed yet. */
+.ag-draft-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0;
+  padding: 10px 12px;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--ag-ink);
+  background: var(--ag-amber-bg);
+  border: 1px dashed var(--ag-ink);
+  border-radius: 12px;
+}
+
+.ag-draft-note img {
+  flex: none;
+  margin-top: 1px;
+}

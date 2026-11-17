@@ -19,7 +19,7 @@ import { back } from "../router.js";
 import { severityDisplay } from "../disease.js";
 import { advisoryMessage } from "../advisory.js";
 import { speak, stopSpeaking } from "../speech.js";
-import { resolveSubject, adviceView } from "./result.js";
+import { resolveSubject, adviceView, draftNote } from "./result.js";
 
 const CARD_ICONS = { treat: icons.droplet28, prevent: icons.shield28, check: icons.calendar28 };
 
@@ -69,7 +69,7 @@ export function render(params = {}) {
           t("advice.reviewedBy", { name: advice.reviewed_by, date: advice.reviewed_at ?? "" }),
         )}</p>`
       : "";
-    content = safety + sections + reviewed;
+    content = draftNote(advice) + safety + sections + reviewed;
   }
 
   return `
@@ -127,6 +127,7 @@ export function mount(root, params = {}) {
     const lines = cards.length
       ? [
           name,
+          ...(advice.draft ? [t("advice.draftNote")] : []),
           ...(advice.safety_warning ? [t("advice.safety.title"), advice.safety_warning] : []),
           ...cards.flatMap((section) => [section.title, ...section.steps]),
         ]

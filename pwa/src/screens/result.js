@@ -103,6 +103,15 @@ function nearbyBanner(subject) {
     : "";
 }
 
+/** Label for draft advice that no agronomist has checked yet (src/draft-advice.js). */
+export function draftNote(advice) {
+  return advice?.draft
+    ? `<p class="ag-draft-note" role="note"><img src="${
+        icons.warning
+      }" alt="" width="18" height="18" /><span>${esc(t("advice.draftNote"))}</span></p>`
+    : "";
+}
+
 /** Collapsed card text: the first step, or the "not checked yet" message. */
 function cardsHtml(cards) {
   if (!cards.length) {
@@ -175,6 +184,7 @@ export function render(params = {}) {
           ${severityBar(severity)}
           ${nearbyBanner(subject)}
 
+          ${draftNote(view.advice)}
           <div class="ag-sections">${cardsHtml(view.cards)}</div>
         </div>
       </div>
@@ -231,6 +241,7 @@ export function mount(root, params = {}) {
       view.name,
       t("result.sure", { percent: confidencePercent(subject.confidence) }),
       nearbyText(subject),
+      ...(view.advice?.draft ? [t("advice.draftNote")] : []),
       ...(view.cards.length
         ? view.cards.flatMap((section) => [section.title, section.steps[0]])
         : [advisoryMessage("no_advice")]),

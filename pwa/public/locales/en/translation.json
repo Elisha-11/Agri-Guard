@@ -35,6 +35,7 @@
 
   "advice.safety.title": "Safety",
   "advice.reviewedBy": "Checked by {name}, {date}",
+  "advice.draftNote": "Draft advice, not yet checked by an agronomist. Confirm with your extension officer before you treat.",
 
   "advisory.no_advice": "We recognised this problem, but advice for it has not been checked by an expert yet. Please show this plant to an extension officer.",
   "advisory.uncertain": "We are not sure. Please take another photo.",
