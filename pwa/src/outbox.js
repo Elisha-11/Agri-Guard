@@ -8,8 +8,9 @@
  * can never create a duplicate on the server (every endpoint that takes queued
  * items is idempotent on `client_id`).
  *
- * Today only the agrovet requests use it (kinds `agrovet_request` and
- * `agrovet_close`). Diagnosis and feedback sync will add their own kinds.
+ * Today only the agrovet requests use it (kinds `agrovet_request`,
+ * `agrovet_message` and `agrovet_close`; their handlers live in
+ * src/agrovet-requests.js). Diagnosis and feedback sync will add their own kinds.
  *
  * What a handler returns decides what happens to its item:
  *   "done"  sent (or the server already had it): remove it

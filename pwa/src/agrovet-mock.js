@@ -12,12 +12,20 @@
  * cannot ring a real person.
  */
 
+import { MESSAGE_MAX_LENGTH } from "./agrovet-api.js";
+
 const MOCK_KEY = "agriguard.mock.agrovetServer";
 const MOCK_ETAG = '"mock-directory-1"';
 
 /** Seconds after sending before the fake agrovet has seen, then answered, a request. */
 export const MOCK_SEEN_AFTER = 10;
 export const MOCK_REPLY_AFTER = 30;
+/** Seconds before a fake agrovet answers a message (Two never answers). */
+export const MOCK_CHAT_REPLY_AFTER = 15;
+const MOCK_CHAT_ANSWERS = {
+  "demo-agrovet-1": "Demo message: Thank you. Please send a clear photo of the lower leaves too.",
+  "demo-agrovet-3": "Demo message: We expect new stock on Monday. I will message you then.",
+};
 
 export const MOCK_AGROVETS = [
   {
@@ -121,7 +129,38 @@ export function createMockServer({ now = () => Date.now(), storage: given } = {}
         Date.parse(request.created_at) + MOCK_SEEN_AFTER * 1000,
       ).toISOString();
     }
+    return advanceChat(request);
+  };
+
+  /** The fake agrovet answers each farmer message once, a little later. */
+  const advanceChat = (request) => {
+    const answer = MOCK_CHAT_ANSWERS[request.agrovet_id];
+    request.messages ??= [];
+    if (!answer || request.status === "closed") return request;
+    for (const message of request.messages) {
+      if (message.sender !== "farmer" || message.answered) continue;
+      if ((now() - Date.parse(message.created_at)) / 1000 < MOCK_CHAT_REPLY_AFTER) continue;
+      message.answered = true;
+      const at = new Date(now()).toISOString();
+      request.messages.push({
+        id: `${message.client_id}-answer`,
+        request_client_id: request.client_id,
+        sender: "agrovet",
+        text: answer,
+        created_at: at,
+        lang: "en",
+        template_key: null,
+      });
+      request.last_message_at = at;
+      request.updated_at = at;
+    }
     return request;
+  };
+
+  /** A message as the API returns it (no mock bookkeeping). */
+  const publicMessage = ({ answered, ...message }) => {
+    void answered;
+    return message;
   };
 
   return {
@@ -151,6 +190,8 @@ export function createMockServer({ now = () => Date.now(), storage: given } = {}
             created_at: at,
             updated_at: at,
             replies: [],
+            messages: [],
+            last_message_at: null,
           };
           db.requests.push(request);
           save(db);
@@ -163,8 +204,62 @@ export function createMockServer({ now = () => Date.now(), storage: given } = {}
         const db = load();
         db.requests.forEach(advance);
         save(db);
-        const changed = db.requests.filter((item) => !since || item.updated_at > since);
+        const changed = db.requests
+          .filter((item) => !since || item.updated_at > since)
+          .map(({ messages: thread, ...item }) => {
+            void thread; // the list carries last_message_at; the thread has its own endpoint
+            return item;
+          });
         return json(200, changed);
+      }
+
+      const messages = route.match(/^\/api\/v1\/agrovet-requests\/([^/]+)\/messages\/$/);
+      if (messages) {
+        const db = load();
+        const request = db.requests.find((item) => item.client_id === messages[1]);
+        if (!request) return json(404, { code: "not_found", message: "No such request" });
+        advance(request);
+
+        if (method === "GET") {
+          save(db);
+          const since = url.searchParams.get("since");
+          return json(
+            200,
+            request.messages
+              .filter((message) => !since || message.created_at > since)
+              .map(publicMessage),
+          );
+        }
+
+        if (method === "POST") {
+          const body = JSON.parse(init.body ?? "{}");
+          const text = String(body.text ?? "").trim();
+          if (request.status === "closed") {
+            return json(409, { code: "request_closed", message: "This request is closed" });
+          }
+          if (!text || text.length > MESSAGE_MAX_LENGTH) {
+            return json(400, { code: "invalid_text", message: "Empty or too long" });
+          }
+          let message = request.messages.find((item) => item.client_id === body.client_id);
+          if (!message) {
+            const at = new Date(now()).toISOString();
+            message = {
+              id: `m-${body.client_id}`,
+              client_id: body.client_id,
+              request_client_id: request.client_id,
+              sender: "farmer",
+              text,
+              created_at: at,
+              lang: null,
+              template_key: null,
+            };
+            request.messages.push(message);
+            request.last_message_at = at;
+            request.updated_at = at;
+            save(db);
+          }
+          return json(201, publicMessage(message));
+        }
       }
 
       const close = route.match(/^\/api\/v1\/agrovet-requests\/([^/]+)\/close\/$/);

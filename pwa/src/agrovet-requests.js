@@ -14,9 +14,17 @@
  *   the farmer opens a request. There are no push notifications.
  * - The photo: until the backend picks a photo endpoint (spec §3), a shared
  *   photo is kept on the phone as a thumbnail and NOT uploaded.
+ * - Messages (PROPOSED endpoints, mock only until the backend confirms them):
+ *   each open request has one message thread. A farmer message goes through
+ *   the outbox like everything else (kind `agrovet_message`, idempotent on the
+ *   message's own `client_id`) and is always sent after the request it belongs
+ *   to. Its status is "queued" (waiting for signal), "sending", "sent" or
+ *   "failed". Threads are fetched from GET …/{client_id}/messages/?since= when
+ *   the request is opened, and on app open and signal back for any request
+ *   whose `last_message_at` is newer than what the phone has.
  */
 
-import { agrovetFetch } from "./agrovet-api.js";
+import { agrovetFetch, MESSAGE_MAX_LENGTH } from "./agrovet-api.js";
 import { createOutbox } from "./outbox.js";
 import { AGROVETS_UPDATED, refreshDirectory } from "./agrovets.js";
 import { currentLanguage } from "./i18n.js";
@@ -64,6 +72,23 @@ export function buildRequestPayload({
   if (share.diagnosis !== false && predictionStatus) payload.prediction_status = predictionStatus;
   if (share.district !== false && district) payload.district = district;
   return payload;
+}
+
+/**
+ * True when a message looks like it holds a phone number: 9 or more digits,
+ * allowing spaces, dashes and a leading +. Used to warn a farmer who chose not
+ * to share their number before they type it into a message.
+ */
+export function looksLikePhoneNumber(text) {
+  return /\+?\d(?:[\s-]?\d){8,}/.test(String(text ?? ""));
+}
+
+/** Why a message cannot be sent: "empty", "tooLong", or null when it is fine. */
+export function messageProblem(text) {
+  const body = String(text ?? "").trim();
+  if (!body) return "empty";
+  if (body.length > MESSAGE_MAX_LENGTH) return "tooLong";
+  return null;
 }
 
 /** Which language a reply is shown in, and whether to say it fell back to English. */
@@ -141,6 +166,35 @@ export function createAgrovetRequests(deps = {}) {
         }
         return outcome;
       },
+      async agrovet_message(item) {
+        const mark = (change) =>
+          update(item.request_client_id, (request) => ({
+            messages: (request.messages ?? []).map((message) =>
+              message.client_id === item.client_id ? { ...message, ...change } : message,
+            ),
+          }));
+
+        mark({ status: "sending" });
+        let response;
+        try {
+          response = await post(
+            `/api/v1/agrovet-requests/${item.request_client_id}/messages/`,
+            item.payload,
+          );
+        } catch (error) {
+          mark({ status: "queued" }); // no signal after all: back to waiting
+          throw error;
+        }
+
+        const outcome = outcomeOf(response);
+        if (outcome === "done") {
+          const body = await response.json().catch(() => null);
+          mark({ ...(body ?? {}), sender: "farmer", status: "sent" });
+        } else {
+          mark({ status: outcome === "drop" ? "failed" : "queued" });
+        }
+        return outcome;
+      },
       async agrovet_close(item) {
         const response = await post(`/api/v1/agrovet-requests/${item.client_id}/close/`);
         const outcome = outcomeOf(response);
@@ -200,6 +254,8 @@ export function createAgrovetRequests(deps = {}) {
         status: "queued",
         closePending: false,
         replies: [],
+        messages: [],
+        last_message_at: null,
         created_at: at,
         updated_at: at,
       });
@@ -211,15 +267,115 @@ export function createAgrovetRequests(deps = {}) {
       return this.find(clientId);
     },
 
+    /** True when the farmer may send messages on this request. */
+    canMessage(clientId) {
+      const request = this.find(clientId);
+      return Boolean(request) && request.status !== "closed" && request.status !== "failed";
+    },
+
+    /**
+     * Add a message and try to send it. It shows straight away as "queued"
+     * and goes out after the request itself has been sent. Returns null, and
+     * saves nothing, for an empty or over-long message or a closed request.
+     */
+    async sendMessage(clientId, text) {
+      const body = String(text ?? "").trim();
+      if (messageProblem(body) || !this.canMessage(clientId)) return null;
+
+      const message = {
+        client_id: uuid(),
+        sender: "farmer",
+        text: body,
+        created_at: new Date(now()).toISOString(),
+        status: "queued",
+      };
+      update(clientId, (request) => ({ messages: [...(request.messages ?? []), message] }));
+      await outbox.add("agrovet_message", {
+        client_id: message.client_id,
+        request_client_id: clientId,
+        payload: { client_id: message.client_id, text: body },
+      });
+      await flush();
+      return this.find(clientId).messages.find((item) => item.client_id === message.client_id);
+    },
+
+    /**
+     * Fetch new chat messages for one request. Resolves to "updated" |
+     * "unchanged" | "offline" | "auth" | "none"; never rejects.
+     */
+    async refreshMessages(clientId) {
+      const request = this.find(clientId);
+      if (!request || request.status === "queued" || request.status === "failed") return "none";
+
+      try {
+        const since = request.messages_since;
+        const response = await fetchImpl(
+          `/api/v1/agrovet-requests/${clientId}/messages/${
+            since ? `?since=${encodeURIComponent(since)}` : ""
+          }`,
+          { cache: "no-store" },
+        );
+        if (response.status === 401) {
+          authNeeded = true;
+          return "auth";
+        }
+        if (!response.ok) return "offline";
+
+        const body = await response.json();
+        const incoming = Array.isArray(body) ? body : body?.results ?? [];
+        if (!incoming.length) return "unchanged";
+
+        update(clientId, (local) => {
+          const messages = [...(local.messages ?? [])];
+          let latest = local.messages_since ?? "";
+          for (const remote of incoming) {
+            const index = messages.findIndex(
+              (message) =>
+                (remote.client_id && message.client_id === remote.client_id) ||
+                (remote.id && message.id === remote.id),
+            );
+            const merged = { ...remote, status: "sent" };
+            if (index === -1) messages.push(merged);
+            else messages[index] = { ...messages[index], ...merged };
+            if (remote.created_at > latest) latest = remote.created_at;
+          }
+          return { messages, messages_since: latest };
+        });
+        return "updated";
+      } catch {
+        return "offline";
+      }
+    },
+
+    /**
+     * Fetch the thread of every request with messages the phone has not got
+     * yet (its `last_message_at` is newer than the last message fetched).
+     */
+    async refreshAllMessages() {
+      const stale = read().requests.filter(
+        (request) =>
+          request.status !== "queued" &&
+          request.status !== "failed" &&
+          request.last_message_at &&
+          request.last_message_at > (request.messages_since ?? ""),
+      );
+      for (const request of stale) {
+        if ((await this.refreshMessages(request.client_id)) === "auth") return "auth";
+      }
+      return stale.length ? "updated" : "unchanged";
+    },
+
     /** Close a request, now or as soon as there is signal. */
     async close(clientId) {
       const request = this.find(clientId);
       if (!request || request.status === "closed") return;
 
       if (request.status === "queued" || request.status === "failed") {
-        // Never reached the server: take it out of the outbox, nothing to send.
+        // Never reached the server: take it and its unsent messages out of the outbox.
         const pending = (await outbox.items()).filter(
-          (item) => item.kind === "agrovet_request" && item.client_id === clientId,
+          (item) =>
+            (item.kind === "agrovet_request" && item.client_id === clientId) ||
+            (item.kind === "agrovet_message" && item.request_client_id === clientId),
         );
         await Promise.all(pending.map((item) => outbox.remove(item.id)));
         update(clientId, () => ({ status: "closed", closePending: false }));
@@ -265,6 +421,7 @@ export function createAgrovetRequests(deps = {}) {
             status,
             updated_at: remote.updated_at ?? local.updated_at,
             replies: remote.replies ?? local.replies,
+            last_message_at: remote.last_message_at ?? local.last_message_at ?? null,
           });
           if (!fresh.since || (remote.updated_at && remote.updated_at > fresh.since)) {
             fresh.since = remote.updated_at;
@@ -278,11 +435,14 @@ export function createAgrovetRequests(deps = {}) {
       }
     },
 
-    /** Send anything queued, then fetch replies. */
+    /** Send anything queued, then fetch replies and new messages. */
     async sync() {
       const sent = await flush();
       if (sent === "auth") return "auth";
-      return this.refresh();
+      const refreshed = await this.refresh();
+      if (refreshed === "auth") return "auth";
+      await this.refreshAllMessages();
+      return refreshed;
     },
   };
 }

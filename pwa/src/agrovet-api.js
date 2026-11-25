@@ -30,6 +30,9 @@ export const AGROVET_MOCK = import.meta.env.PROD
   ? import.meta.env.MODE === "demo"
   : import.meta.env.VITE_AGROVET_MOCK !== "false";
 
+/** Longest message a farmer can send (1,000 characters, confirmed by the project lead). */
+export const MESSAGE_MAX_LENGTH = 1000;
+
 /** The farmer's district in mock mode. The real app will read it from GET /me/. */
 export const MOCK_DISTRICT = AGROVET_MOCK ? "Example District" : null;
 

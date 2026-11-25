@@ -186,5 +186,25 @@
   "reply.product": "Suggested product: {name}",
   "reply.visitFarm": "Can visit your farm",
   "reply.waiting": "No reply yet",
-  "reply.english": "Shown in English"
+  "reply.english": "Shown in English",
+
+  "message.title": "Messages",
+  "message.placeholder": "Write a message",
+  "message.send": "Send",
+  "message.sending": "Sending…",
+  "message.sent": "Sent",
+  "message.waiting": "Waiting for signal",
+  "message.failed": "Not sent",
+  "message.quickTitle": "Quick replies",
+  "message.quick.price": "Can you send prices?",
+  "message.quick.visit": "Can you visit my farm?",
+  "message.quick.stock": "Do you have this in stock?",
+  "message.closed": "This request is closed. You can read the messages but not send new ones.",
+  "message.empty": "Type a message first.",
+  "message.tooLong": "This message is too long. Keep it under {max} characters.",
+  "message.counter": "{count} of {max} characters",
+  "message.english": "Shown in English",
+  "message.phoneWarning": "This looks like a phone number. You chose not to share your number with the agrovet. Send it anyway?",
+  "message.sendAnyway": "Send anyway",
+  "message.edit": "Edit message"
 }

@@ -8,6 +8,10 @@
  * quick-reply template that has a translation; an English fallback is
  * labelled "Shown in English". Closing asks inline (never a browser dialog)
  * and works offline.
+ *
+ * Below the replies sits the message thread (./message-thread.js). Messages
+ * are fetched when this screen opens, when the phone gets signal back and when
+ * the app opens; there is no polling and no push.
  */
 
 import { t, currentLanguage } from "../i18n.js";
@@ -16,6 +20,7 @@ import { go, back, replace } from "../router.js";
 import { AGROVETS_UPDATED } from "../agrovets.js";
 import { agrovetRequests, cropOf, replyLanguageNote } from "../agrovet-requests.js";
 import { mockBanner, avBack, statusChip, diagnosisLabel, isOnline } from "./agrovet-ui.js";
+import { threadHtml, messagesHtml, bindThread } from "./message-thread.js";
 
 function capitalised(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -68,6 +73,7 @@ export function render(params = {}, view = {}) {
   const diagnosis = diagnosisLabel(request.class_id, request.prediction_status);
   const english = replies.some((reply) => replyLanguageNote(reply, lang));
   const closed = request.status === "closed";
+  const agrovetWrote = (request.messages ?? []).some((message) => message.sender === "agrovet");
 
   const yours = [
     t("request.yourCrop", { crop: capitalised(request.crop || cropOf(null)) }),
@@ -107,13 +113,14 @@ export function render(params = {}, view = {}) {
         ${
           replies.length
             ? replies.map(replyCard).join("")
-            : closed || request.status === "queued" || request.status === "failed"
+            : closed || request.status === "queued" || request.status === "failed" || agrovetWrote
               ? ""
               : `<p class="ag-av-box ag-av-card-block ag-av-card-block__line ag-av-waiting">${esc(
                   t("reply.waiting"),
                 )}</p>`
         }
 
+        ${threadHtml(request, lang)}
       </div>
 
       <div class="ag-av__bottom">
@@ -143,17 +150,27 @@ export function render(params = {}, view = {}) {
 }
 
 export function mount(root, params = {}) {
-  if (!agrovetRequests.find(params.clientId)) {
+  const clientId = params.clientId;
+  if (!agrovetRequests.find(clientId)) {
     replace("/requests");
     return null;
   }
 
   bindBack(root, () => back("/requests"));
 
-  const closeButton = root.querySelector("#ag-av-close");
+  const input = () => root.querySelector("#ag-av-message");
   const confirm = root.querySelector("#ag-av-confirm");
-  const confirming = () => confirm && !confirm.hidden;
+  const confirming = () => Boolean(confirm && !confirm.hidden);
 
+  const redraw = () =>
+    go("/request", {
+      ...params,
+      redraw: true,
+      focusMessage: document.activeElement === input(),
+    });
+
+  // ---- close, with an inline question
+  const closeButton = root.querySelector("#ag-av-close");
   closeButton?.addEventListener("click", () => {
     closeButton.hidden = true;
     confirm.hidden = false;
@@ -165,16 +182,40 @@ export function mount(root, params = {}) {
     closeButton.focus();
   });
   root.querySelector("#ag-av-close-yes")?.addEventListener("click", async () => {
-    await agrovetRequests.close(params.clientId);
-    go("/request", { ...params, redraw: true });
+    await agrovetRequests.close(clientId);
+    redraw();
   });
 
-  // A reply or status change redraws the screen, but never under an open question.
-  const redraw = () => {
-    if (!confirming()) go("/request", { ...params, redraw: true });
-  };
-  window.addEventListener(AGROVETS_UPDATED, redraw);
-  if (!params.redraw && isOnline()) agrovetRequests.sync();
+  // ---- messages
+  const scrollToLatest = () =>
+    root
+      .querySelector("#ag-av-thread-list > :last-child")
+      ?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
 
-  return () => window.removeEventListener(AGROVETS_UPDATED, redraw);
+  bindThread(root, clientId, { onSent: scrollToLatest });
+  if (params.focusMessage) {
+    input()?.focus();
+    scrollToLatest();
+  }
+
+  // When something changes: redraw the screen, unless the farmer is typing
+  // or answering the close question. Then only the messages are refreshed, so
+  // nothing they typed is lost.
+  const onUpdate = () => {
+    if (confirming() || input()?.value) {
+      const request = agrovetRequests.find(clientId);
+      const list = root.querySelector("#ag-av-thread-list");
+      if (request && list) list.innerHTML = messagesHtml(request);
+      return;
+    }
+    redraw();
+  };
+  window.addEventListener(AGROVETS_UPDATED, onUpdate);
+
+  // On open: send anything waiting, then fetch status, replies and this thread.
+  if (!params.redraw && isOnline()) {
+    agrovetRequests.sync().then(() => agrovetRequests.refreshMessages(clientId));
+  }
+
+  return () => window.removeEventListener(AGROVETS_UPDATED, onUpdate);
 }

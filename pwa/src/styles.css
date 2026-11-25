@@ -2149,3 +2149,187 @@ body {
   background: var(--ag-surface);
   border: 1px solid var(--ag-av-border);
 }
+
+/* ------------------------------------------------- 13. Messages --------- */
+/* The thread below the replies. No Figma frame yet: built from frame 13's
+   cards, colours and buttons. */
+
+.ag-av-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ag-av-thread__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ag-av-thread__list:empty {
+  display: none;
+}
+
+.ag-av-thread__closed {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ag-av-muted);
+}
+
+.ag-av-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 14px;
+}
+
+.ag-av-msg--farmer {
+  align-self: flex-end;
+  color: #fff;
+  background: var(--ag-green);
+  border-bottom-right-radius: 4px;
+}
+
+.ag-av-msg--agrovet {
+  align-self: flex-start;
+  color: var(--ag-av-ink);
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-av-border);
+  border-bottom-left-radius: 4px;
+}
+
+.ag-av-msg.is-pending {
+  opacity: 0.75;
+}
+
+.ag-av-msg__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ag-av-msg__meta {
+  margin: 0;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: right;
+  opacity: 0.8;
+}
+
+.ag-av-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ag-av-quick__chip {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--ag-green);
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-av-border);
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.ag-av-quick__chip:active {
+  background: var(--ag-av-note-bg);
+}
+
+.ag-av-compose {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ag-av-compose[hidden],
+.ag-av-warning[hidden] {
+  display: none;
+}
+
+.ag-av-compose__input {
+  flex: 1 1 auto;
+  min-height: 48px;
+  max-height: 120px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ag-av-ink);
+  resize: none;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-av-border);
+  border-radius: 12px;
+}
+
+.ag-av-compose__input::placeholder {
+  color: var(--ag-av-muted);
+}
+
+.ag-av-compose__send {
+  flex: 0 0 auto;
+  height: 48px;
+  padding: 0 18px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ag-green);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ag-av-compose__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--ag-av-muted);
+}
+
+.ag-av-compose__hint:empty {
+  display: none;
+}
+
+.ag-av-compose__hint.is-error {
+  color: var(--ag-av-danger);
+}
+
+.ag-av-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--ag-av-amber-bg);
+  border: 1px solid var(--ag-av-amber-border);
+  border-radius: 12px;
+}
+
+.ag-av-warning__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ag-av-amber-text);
+}
+
+.ag-av-warning__send {
+  flex: 1 1 0;
+  height: 40px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ag-green);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
