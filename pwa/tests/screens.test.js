@@ -41,6 +41,11 @@ import * as settings from "../src/screens/settings.js";
 import * as language from "../src/screens/language.js";
 import * as signIn from "../src/screens/sign-in.js";
 import * as enterCode from "../src/screens/enter-code.js";
+import * as agrovets from "../src/screens/agrovets.js";
+import * as agrovetRequest from "../src/screens/agrovet-request.js";
+import * as requests from "../src/screens/requests.js";
+import * as requestDetail from "../src/screens/request-detail.js";
+import { AGROVET_MOCK } from "../src/agrovet-api.js";
 
 const localeUrl = new URL("../public/locales/en/translation.json", import.meta.url);
 
@@ -263,5 +268,211 @@ describe("screens render", () => {
     expect(language.render()).toContain("Tonga");
     expect(signIn.render()).toContain("Send code");
     expect(enterCode.render()).toContain("+260 970000000");
+  });
+});
+
+describe("agrovet screens", () => {
+  const shops = [
+    {
+      id: "a1",
+      name: "Demo Agrovet One",
+      town: "Example Town",
+      district: "Example District",
+      location: { lat: -15.41, lng: 28.3 },
+      phone: "+260000000001",
+      whatsapp: "+260000000001",
+    },
+    {
+      id: "a2",
+      name: "Demo Agrovet Two",
+      town: "Example Town",
+      district: "Example District",
+      location: { lat: -15.5, lng: 28.3 },
+      phone: "+260000000002",
+      whatsapp: null,
+    },
+  ];
+  const cache = { etag: '"v1"', fetchedAt: Date.UTC(2026, 10, 25), items: shops };
+
+  it("adds one Find agrovet button to the result, uncertain, consult and advice screens", () => {
+    session.prediction = {
+      class_id: "maize__streak",
+      confidence: 0.91,
+      status: "confident",
+      severity: "none",
+      top_k: [{ class_id: "maize__streak", confidence: 0.91 }],
+      model_version: "x",
+    };
+    for (const screen of [result, advice, resultUncertain, resultConsult]) {
+      const html = screen.render();
+      expect(html.match(/id="ag-find-agrovet"/g)).toHaveLength(1);
+      expect(html).toContain("Find agrovet");
+    }
+    expect(resultRejected.render()).not.toContain("ag-find-agrovet");
+    expect(capture.render()).not.toContain("ag-find-agrovet");
+  });
+
+  it("lists agrovets by distance with Call and WhatsApp links", () => {
+    const html = agrovets.render({}, { cache, location: { lat: -15.4, lng: 28.3 }, online: true });
+    expect(html).toContain("Agrovets near you");
+    expect(html.indexOf("Demo Agrovet One")).toBeLessThan(html.indexOf("Demo Agrovet Two"));
+    expect(html).toContain("1.1 km away");
+    expect(html).toContain('href="tel:+260000000001"');
+    expect(html).toContain('href="https://wa.me/260000000001"');
+    // Two has no WhatsApp number, so no WhatsApp button.
+    expect(html.match(/ag-av-card__btn--whatsapp/g)).toHaveLength(1);
+    expect(html).toContain("My requests");
+    expect(html).not.toContain("Turn on location");
+  });
+
+  it("without location, shows the district and the turn-on-location note", () => {
+    const html = agrovets.render(
+      {},
+      { cache, location: null, district: "Example District", online: true },
+    );
+    expect(html).toContain("Agrovets in Example District");
+    expect(html).toContain("Turn on location to see the closest agrovets first.");
+    expect(html).not.toContain("km away");
+  });
+
+  it("works offline from the cache, with Call and WhatsApp marked as needing signal", () => {
+    const html = agrovets.render({}, { cache, location: null, district: null, online: false });
+    expect(html).toContain("Demo Agrovet One");
+    expect(html).toContain("Needs signal");
+    expect(html).not.toContain("tel:");
+    expect(html).not.toContain("wa.me");
+  });
+
+  it("explains an empty list offline before the first download", () => {
+    const html = agrovets.render(
+      {},
+      { cache: null, location: null, district: null, online: false },
+    );
+    expect(html).toContain(t("agrovet.neverFetchedOffline"));
+  });
+
+  it("shows the demo banner exactly while the mock is on", () => {
+    const html = agrovets.render({}, { cache, online: true });
+    expect(html.includes("Demo data. These agrovets are not real.")).toBe(AGROVET_MOCK);
+  });
+
+  it("renders the request form with phone off and everything else on", () => {
+    const html = agrovetRequest.render(
+      {},
+      {
+        agrovet: shops[0],
+        context: { classId: "maize__streak", predictionStatus: "confident", thumb: "data:x" },
+        district: "Example District",
+        online: true,
+      },
+    );
+    expect(html).toContain("Ask Demo Agrovet One");
+    expect(html).toContain("Maize Streak");
+    expect(html).toContain("Describe the problem in your own words");
+    for (const key of ["photo", "diagnosis", "district"]) {
+      expect(html).toMatch(new RegExp(`data-share="${key}"\\s+checked`));
+    }
+    expect(html).toMatch(/data-share="phone"\s+\/>/);
+    expect(html).toContain("Off unless you turn it on. If on, the agrovet can call you.");
+  });
+
+  it("offers only the toggles there is something to share for", () => {
+    const html = agrovetRequest.render(
+      {},
+      { agrovet: shops[0], context: null, district: null, online: false },
+    );
+    expect(html).not.toContain('data-share="photo"');
+    expect(html).not.toContain('data-share="diagnosis"');
+    expect(html).not.toContain('data-share="district"');
+    expect(html).toContain('data-share="phone"');
+    expect(html).toContain(t("request.offlineHint"));
+  });
+
+  it("labels an uncertain diagnosis as not sure", () => {
+    const html = agrovetRequest.render(
+      {},
+      {
+        agrovet: shops[0],
+        context: { classId: "maize__streak", predictionStatus: "uncertain" },
+        district: null,
+        online: true,
+      },
+    );
+    expect(html).toContain("Maize Streak (not sure)");
+  });
+
+  const sent = {
+    client_id: "c1",
+    agrovet_id: "a1",
+    agrovet_name: "Demo Agrovet One",
+    crop: "maize",
+    class_id: "maize__streak",
+    prediction_status: "confident",
+    description: "Pale streaks appeared on the leaves this week.",
+    share_phone: false,
+    thumb: "data:x",
+    status: "replied",
+    replies: [
+      {
+        id: "r1",
+        in_stock: true,
+        price: { amount: 150, currency: "ZMW" },
+        product: { id: null, name: "Demo product" },
+        visit_farm: true,
+        text: "I can visit your farm.",
+        lang: "en",
+      },
+    ],
+    created_at: "2026-11-25T10:00:00Z",
+  };
+
+  it("lists my requests with their status", () => {
+    const html = requests.render(
+      {},
+      {
+        requests: [sent, { ...sent, client_id: "c2", status: "queued", replies: [] }],
+        authNeeded: false,
+      },
+    );
+    expect(html).toContain("My requests");
+    expect(html).toContain("Replied");
+    expect(html).toContain("Waiting for signal");
+    expect(requests.render({}, { requests: [], authNeeded: false })).toContain(t("request.none"));
+    expect(requests.render({}, { requests: [], authNeeded: true })).toContain(
+      t("request.signInAgain"),
+    );
+  });
+
+  it("shows a reply with stock, price, product, farm visit and text", () => {
+    const html = requestDetail.render({}, { request: sent, lang: "en" });
+    expect(html).toContain("Request to Demo Agrovet One");
+    expect(html).toContain("Your description: Pale streaks appeared on the leaves this week.");
+    expect(html).toContain("In stock");
+    expect(html).toContain("Price: K150");
+    expect(html).toContain("Suggested product: Demo product");
+    expect(html).toContain("Can visit your farm");
+    expect(html).toContain("I can visit your farm.");
+    expect(html).toContain("Close request");
+    expect(html).toContain("Close this request?");
+    expect(html).not.toContain("Shown in English");
+  });
+
+  it("notes an English fallback for a farmer using another language", () => {
+    expect(requestDetail.render({}, { request: sent, lang: "ny" })).toContain("Shown in English");
+  });
+
+  it("shows waiting and closed states", () => {
+    const waiting = requestDetail.render({}, { request: { ...sent, status: "sent", replies: [] } });
+    expect(waiting).toContain("No reply yet");
+
+    const queued = requestDetail.render(
+      {},
+      { request: { ...sent, status: "queued", replies: [] } },
+    );
+    expect(queued).toContain(t("request.willSend"));
+
+    const closed = requestDetail.render({}, { request: { ...sent, status: "closed" } });
+    expect(closed).toContain("Closed");
+    expect(closed).not.toContain("Close request");
   });
 });

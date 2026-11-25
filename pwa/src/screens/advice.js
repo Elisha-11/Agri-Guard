@@ -19,7 +19,8 @@ import { back } from "../router.js";
 import { severityDisplay } from "../disease.js";
 import { advisoryMessage } from "../advisory.js";
 import { speak, stopSpeaking } from "../speech.js";
-import { resolveSubject, adviceView, draftNote } from "./result.js";
+import { resolveSubject, adviceView, draftNote, agrovetContext } from "./result.js";
+import { findAgrovetButton, bindFindAgrovet } from "../find-agrovet.js";
 
 const CARD_ICONS = { treat: icons.droplet28, prevent: icons.shield28, check: icons.calendar28 };
 
@@ -99,6 +100,7 @@ export function render(params = {}) {
           <img src="${icons.speakerAdvice}" alt="" width="24" height="24" />
           <span>${esc(t("action.listen"))}</span>
         </button>
+        ${findAgrovetButton()}
       </div>
     </section>
   `;
@@ -119,6 +121,8 @@ export function mount(root, params = {}) {
     const target = root.querySelector(`[data-card="${CSS.escape(params.section)}"]`);
     if (target) target.scrollIntoView({ block: "center" });
   }
+
+  bindFindAgrovet(root, () => agrovetContext(params));
 
   const listen = root.querySelector("#ag-listen");
 

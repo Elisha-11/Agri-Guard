@@ -20,6 +20,7 @@ import { displayName, severityDisplay, confidencePercent } from "../disease.js";
 import { adviceFor, adviceCards, advisoryMessage } from "../advisory.js";
 import { alertFor } from "../alerts.js";
 import { speak, stopSpeaking } from "../speech.js";
+import { findAgrovetButton, bindFindAgrovet } from "../find-agrovet.js";
 
 const SECTION_ICONS = { treat: icons.droplet, prevent: icons.shield, check: icons.calendar };
 
@@ -67,6 +68,25 @@ export function resolveSubject(params = {}) {
   }
 
   return null;
+}
+
+/**
+ * What the "Find agrovet" button hands to the request form: the diagnosis and
+ * where its photo is (this check's photo, or a saved check's thumbnail).
+ */
+export function agrovetContext(params = {}) {
+  const subject = resolveSubject(params);
+  const entry = params.entryId ? findHistoryEntry(params.entryId) : null;
+  return {
+    classId: subject?.classId ?? null,
+    predictionStatus: entry
+      ? entry.status ?? null
+      : subject?.fromAlert
+        ? null
+        : session.prediction?.status ?? null,
+    thumb: entry?.thumb ?? null,
+    useSessionPhoto: !entry && !subject?.fromAlert,
+  };
 }
 
 /** Published advice for the subject, its cards, and the name to show. */
@@ -194,6 +214,7 @@ export function render(params = {}) {
           <img src="${icons.speaker}" alt="" width="24" height="24" />
           <span>${esc(t("action.listen"))}</span>
         </button>
+        ${findAgrovetButton()}
       </div>
     </section>
   `;
@@ -251,6 +272,7 @@ export function mount(root, params = {}) {
   };
 
   listen.addEventListener("click", onListen);
+  bindFindAgrovet(root, () => agrovetContext(params));
 
   return () => stopSpeaking();
 }

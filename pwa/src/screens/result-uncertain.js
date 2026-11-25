@@ -13,6 +13,7 @@ import { esc, demoNote, backButton, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
 import { session } from "../state.js";
 import { displayName, confidencePercent } from "../disease.js";
+import { findAgrovetButton, bindFindAgrovet } from "../find-agrovet.js";
 
 const TIP_KEYS = ["uncertain.tip.closer", "uncertain.tip.daylight", "uncertain.tip.flat"];
 
@@ -83,6 +84,7 @@ export function render() {
       <button type="button" class="ag-btn ag-btn--mid" id="ag-retake">
         ${esc(t("uncertain.retake"))}
       </button>
+      ${findAgrovetButton()}
     </section>
   `;
 }
@@ -90,5 +92,10 @@ export function render() {
 export function mount(root) {
   bindBack(root, () => back("/capture"));
   root.querySelector("#ag-retake").addEventListener("click", () => go("/capture"));
+  bindFindAgrovet(root, () => ({
+    classId: session.prediction?.class_id ?? null,
+    predictionStatus: "uncertain",
+    useSessionPhoto: true,
+  }));
   return null;
 }

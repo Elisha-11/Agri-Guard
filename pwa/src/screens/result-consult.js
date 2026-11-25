@@ -14,6 +14,8 @@ import { icons } from "../icons.js";
 import { t } from "../i18n.js";
 import { esc, demoNote, backButton, bindBack } from "../ui.js";
 import { go, back } from "../router.js";
+import { session } from "../state.js";
+import { findAgrovetButton, bindFindAgrovet } from "../find-agrovet.js";
 
 export function render() {
   return `
@@ -38,6 +40,8 @@ export function render() {
           ${esc(t("consult.find"))}
         </button>
 
+        ${findAgrovetButton()}
+
         <button type="button" class="ag-btn ag-btn--link" id="ag-home">
           ${esc(t("consult.home"))}
         </button>
@@ -57,6 +61,12 @@ export function mount(root) {
   });
 
   root.querySelector("#ag-home").addEventListener("click", () => go("/capture"));
+  // The consult screen names no disease, so the request carries none either.
+  bindFindAgrovet(root, () => ({
+    classId: null,
+    predictionStatus: session.prediction ? "consult" : null,
+    useSessionPhoto: true,
+  }));
 
   return null;
 }
